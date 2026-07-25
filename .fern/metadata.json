@@ -1,0 +1,14 @@
+{
+    "cliVersion": "5.75.6",
+    "generatorName": "fernapi/fern-typescript-sdk",
+    "generatorVersion": "3.82.2",
+    "generatorConfig": {
+        "namespaceExport": "Zinc"
+    },
+    "originGitCommit": "db3668977236c4bcc0d2b68603963f6bb46fe528",
+    "originGitCommitIsDirty": false,
+    "invokedBy": "ci",
+    "requestedVersion": "2026.7.17",
+    "ciProvider": "github",
+    "sdkVersion": "2026.7.17"
+}
