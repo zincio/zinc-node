@@ -8,4 +8,6 @@ export interface BulkUploadRequest {
     filename?: (string | null) | undefined;
     /** Parsed CSV rows, each a mapping of column header to cell value. */
     rows?: Record<string, unknown>[] | undefined;
+    /** Email the account holder once every order in this batch has reached a terminal state (placed, failed, or cancelled). */
+    notify_on_complete?: boolean | undefined;
 }

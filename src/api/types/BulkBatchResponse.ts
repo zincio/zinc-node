@@ -12,6 +12,8 @@ export interface BulkBatchResponse {
     row_count: number;
     placed_count: number;
     failed_count: number;
+    notify_on_complete?: boolean | undefined;
+    notified_at?: (string | null) | undefined;
     created_at: string;
     updated_at: string;
     rows?: Zinc.BulkRowResult[] | undefined;

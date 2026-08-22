@@ -172,81 +172,6 @@ export class AgentClient {
                     environments.ZincEnvironment.Production,
                 "agent/search",
             ),
-            method: "GET",
-            headers: _headers,
-            queryString: core.url
-                .queryBuilder()
-                .addMany(_queryParams)
-                .mergeAdditional(requestOptions?.queryParams)
-                .build(),
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body as Zinc.SearchResponse, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 402:
-                    throw new Zinc.PaymentRequiredError(_response.error.body as unknown, _response.rawResponse);
-                case 422:
-                    throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
-                default:
-                    throw new errors.ZincError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/agent/search");
-    }
-
-    /**
-     * **Beta** — response shape may change. Cross-retailer product search for agents. Returns orderable listings whose
-     * `url` can be passed straight to POST /agent/orders.
-     *
-     * @param {Zinc.AgentSearchPostRequest} request
-     * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link Zinc.PaymentRequiredError}
-     * @throws {@link Zinc.UnprocessableEntityError}
-     * @throws {@link errors.ZincError}
-     * @throws {@link errors.ZincTimeoutError}
-     *
-     * @example
-     *     await client.agent.searchPost({
-     *         q: "q"
-     *     })
-     */
-    public searchPost(
-        request: Zinc.AgentSearchPostRequest,
-        requestOptions?: AgentClient.RequestOptions,
-    ): core.HttpResponsePromise<Zinc.SearchResponse> {
-        return core.HttpResponsePromise.fromPromise(this.__searchPost(request, requestOptions));
-    }
-
-    private async __searchPost(
-        request: Zinc.AgentSearchPostRequest,
-        requestOptions?: AgentClient.RequestOptions,
-    ): Promise<core.WithRawResponse<Zinc.SearchResponse>> {
-        const { q } = request;
-        const _queryParams: Record<string, unknown> = {
-            q,
-        };
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(this._options?.headers, requestOptions?.headers);
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.ZincEnvironment.Production,
-                "agent/search",
-            ),
             method: "POST",
             headers: _headers,
             queryString: core.url
@@ -325,84 +250,6 @@ export class AgentClient {
                     environments.ZincEnvironment.Production,
                 "agent/products/search",
             ),
-            method: "GET",
-            headers: _headers,
-            queryString: core.url
-                .queryBuilder()
-                .addMany(_queryParams)
-                .mergeAdditional(requestOptions?.queryParams)
-                .build(),
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body as Zinc.ProductSearchResponse, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 402:
-                    throw new Zinc.PaymentRequiredError(_response.error.body as unknown, _response.rawResponse);
-                case 422:
-                    throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
-                default:
-                    throw new errors.ZincError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/agent/products/search");
-    }
-
-    /**
-     * Per-retailer product search for agents (amazon | walmart).
-     *
-     * @param {Zinc.AgentProductSearchPostRequest} request
-     * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link Zinc.PaymentRequiredError}
-     * @throws {@link Zinc.UnprocessableEntityError}
-     * @throws {@link errors.ZincError}
-     * @throws {@link errors.ZincTimeoutError}
-     *
-     * @example
-     *     await client.agent.productSearchPost({
-     *         query: "query",
-     *         retailer: "amazon"
-     *     })
-     */
-    public productSearchPost(
-        request: Zinc.AgentProductSearchPostRequest,
-        requestOptions?: AgentClient.RequestOptions,
-    ): core.HttpResponsePromise<Zinc.ProductSearchResponse> {
-        return core.HttpResponsePromise.fromPromise(this.__productSearchPost(request, requestOptions));
-    }
-
-    private async __productSearchPost(
-        request: Zinc.AgentProductSearchPostRequest,
-        requestOptions?: AgentClient.RequestOptions,
-    ): Promise<core.WithRawResponse<Zinc.ProductSearchResponse>> {
-        const { query, retailer, page, free_shipping: freeShipping } = request;
-        const _queryParams: Record<string, unknown> = {
-            query,
-            retailer,
-            page,
-            free_shipping: freeShipping,
-        };
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(this._options?.headers, requestOptions?.headers);
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.ZincEnvironment.Production,
-                "agent/products/search",
-            ),
             method: "POST",
             headers: _headers,
             queryString: core.url
@@ -458,93 +305,14 @@ export class AgentClient {
     public productOffers(
         request: Zinc.AgentProductOffersRequest,
         requestOptions?: AgentClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
+    ): core.HttpResponsePromise<Zinc.AgentProductOffersResponse> {
         return core.HttpResponsePromise.fromPromise(this.__productOffers(request, requestOptions));
     }
 
     private async __productOffers(
         request: Zinc.AgentProductOffersRequest,
         requestOptions?: AgentClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { product_id: productId, retailer, max_age: maxAge, newer_than: newerThan, async } = request;
-        const _queryParams: Record<string, unknown> = {
-            product_id: productId,
-            retailer,
-            max_age: maxAge,
-            newer_than: newerThan,
-            async,
-        };
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(this._options?.headers, requestOptions?.headers);
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.ZincEnvironment.Production,
-                "agent/products/offers",
-            ),
-            method: "GET",
-            headers: _headers,
-            queryString: core.url
-                .queryBuilder()
-                .addMany(_queryParams)
-                .mergeAdditional(requestOptions?.queryParams)
-                .build(),
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 402:
-                    throw new Zinc.PaymentRequiredError(_response.error.body as unknown, _response.rawResponse);
-                case 422:
-                    throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
-                default:
-                    throw new errors.ZincError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/agent/products/offers");
-    }
-
-    /**
-     * Offers/pricing for a specific product on a retailer.
-     *
-     * @param {Zinc.AgentProductOffersPostRequest} request
-     * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link Zinc.PaymentRequiredError}
-     * @throws {@link Zinc.UnprocessableEntityError}
-     * @throws {@link errors.ZincError}
-     * @throws {@link errors.ZincTimeoutError}
-     *
-     * @example
-     *     await client.agent.productOffersPost({
-     *         product_id: "product_id",
-     *         retailer: "amazon"
-     *     })
-     */
-    public productOffersPost(
-        request: Zinc.AgentProductOffersPostRequest,
-        requestOptions?: AgentClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
-        return core.HttpResponsePromise.fromPromise(this.__productOffersPost(request, requestOptions));
-    }
-
-    private async __productOffersPost(
-        request: Zinc.AgentProductOffersPostRequest,
-        requestOptions?: AgentClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
+    ): Promise<core.WithRawResponse<Zinc.AgentProductOffersResponse>> {
         const { product_id: productId, retailer, max_age: maxAge, newer_than: newerThan, async } = request;
         const _queryParams: Record<string, unknown> = {
             product_id: productId,
@@ -575,7 +343,7 @@ export class AgentClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
+            return { data: _response.body as Zinc.AgentProductOffersResponse, rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {
@@ -616,93 +384,14 @@ export class AgentClient {
     public productDetails(
         request: Zinc.AgentProductDetailsRequest,
         requestOptions?: AgentClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
+    ): core.HttpResponsePromise<Zinc.AgentProductDetailsResponse> {
         return core.HttpResponsePromise.fromPromise(this.__productDetails(request, requestOptions));
     }
 
     private async __productDetails(
         request: Zinc.AgentProductDetailsRequest,
         requestOptions?: AgentClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { product_id: productId, retailer, max_age: maxAge, newer_than: newerThan, async } = request;
-        const _queryParams: Record<string, unknown> = {
-            product_id: productId,
-            retailer,
-            max_age: maxAge,
-            newer_than: newerThan,
-            async,
-        };
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(this._options?.headers, requestOptions?.headers);
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.ZincEnvironment.Production,
-                "agent/products/details",
-            ),
-            method: "GET",
-            headers: _headers,
-            queryString: core.url
-                .queryBuilder()
-                .addMany(_queryParams)
-                .mergeAdditional(requestOptions?.queryParams)
-                .build(),
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 402:
-                    throw new Zinc.PaymentRequiredError(_response.error.body as unknown, _response.rawResponse);
-                case 422:
-                    throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
-                default:
-                    throw new errors.ZincError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/agent/products/details");
-    }
-
-    /**
-     * Full product details for a specific product on a retailer.
-     *
-     * @param {Zinc.AgentProductDetailsPostRequest} request
-     * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link Zinc.PaymentRequiredError}
-     * @throws {@link Zinc.UnprocessableEntityError}
-     * @throws {@link errors.ZincError}
-     * @throws {@link errors.ZincTimeoutError}
-     *
-     * @example
-     *     await client.agent.productDetailsPost({
-     *         product_id: "product_id",
-     *         retailer: "amazon"
-     *     })
-     */
-    public productDetailsPost(
-        request: Zinc.AgentProductDetailsPostRequest,
-        requestOptions?: AgentClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
-        return core.HttpResponsePromise.fromPromise(this.__productDetailsPost(request, requestOptions));
-    }
-
-    private async __productDetailsPost(
-        request: Zinc.AgentProductDetailsPostRequest,
-        requestOptions?: AgentClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
+    ): Promise<core.WithRawResponse<Zinc.AgentProductDetailsResponse>> {
         const { product_id: productId, retailer, max_age: maxAge, newer_than: newerThan, async } = request;
         const _queryParams: Record<string, unknown> = {
             product_id: productId,
@@ -733,7 +422,7 @@ export class AgentClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
+            return { data: _response.body as Zinc.AgentProductDetailsResponse, rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {

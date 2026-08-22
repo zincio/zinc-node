@@ -20,8 +20,12 @@ export interface OrderCreate {
     po_number?: (string | null) | undefined;
     /** Optional ceiling on a seller's shipping and handling days. Omit or send null for no limit. */
     handling_days_max?: (number | null) | undefined;
-    /** Mark the order as a gift. Prices are suppressed on the packing slip where the fulfillment method supports it. */
+    /** Mark the order as a gift, suppressing prices on the packing slip. If the retailer's checkout offers no free gift option, the order FAILS with `gift_option_unavailable` rather than being placed as a normal order — a gift that arrives with prices visible to the recipient is treated as worse than no order. */
     is_gift?: boolean | undefined;
+    /** Optional note for the recipient, entered into the retailer's gift-message field at checkout. Requires `is_gift` to be true. Max 240 characters. Delivered where the retailer's checkout offers a gift message; the order is still placed without it where one isn't available. */
+    gift_message?: (string | null) | undefined;
     /** Optional payment block. Omit for prepaid-wallet billing (default). */
     payment?: (Zinc.OrderPayment | null) | undefined;
+    /** Opt in to emailing the end customer order updates (and unlock the public tracking page for this order). Adds a per-order surcharge. Omit for no customer notifications (default). */
+    customer_notifications?: (Zinc.CustomerNotifications | null) | undefined;
 }

@@ -261,7 +261,7 @@ await client.orders.getBulkUpload({
 </dl>
 </details>
 
-<details><summary><code>client.orders.<a href="/src/api/resources/orders/client/Client.ts">downloadBulkResults</a>({ ...params }) -> unknown</code></summary>
+<details><summary><code>client.orders.<a href="/src/api/resources/orders/client/Client.ts">downloadBulkResults</a>({ ...params }) -> string</code></summary>
 <dl>
 <dd>
 
@@ -739,6 +739,36 @@ await client.orders.cancelOrder({
 <dd>
 
 Search for products on a retailer.
+
+**Best Buy returns a partial page.** Best Buy server-renders only about 4 of
+the ~24 products on a search page and loads the rest in the browser, so each
+page yields roughly 4 results rather than a full page. Ranking, pricing and
+availability are Best Buy's own; there are simply fewer items per page. Page
+through with `next_page` to collect more — `next_page` reflects whether Best
+Buy has further results, not how many came back in this response.
+
+**Shopify stores are their own retailer**: pass the store's domain as
+`retailer` (e.g. `retailer=yetch.studio`; any Shopify-powered storefront
+works). Results are the store's own top matches (~10) and there is no
+pagination, so `next_page` is always null and `page` must be omitted or 1.
+`product_id` is the store-scoped product handle to pass to the details
+endpoint with the same `retailer`.
+
+**Etsy search covers US shops, priced in USD.** Etsy sellers price in their
+own currency and a single page routinely mixes several, which makes `price`
+incomparable across a result set — so search is narrowed to US-located
+shops and any remaining non-USD listing is dropped. `currency_code` is set
+on every result and is always `USD` here, and prices are never converted,
+so the number is what the seller charges. Because the currency check runs
+after Etsy paginates, **a page can come back short while more results still
+exist** — page on with `next_page`. (Details is neither narrowed nor
+filtered: it returns any listing, in its own currency.)
+
+Etsy results carry no `stars`/`num_reviews` — Etsy publishes a rating for
+the *shop*, not the listing, and reporting a seller's rating as the
+product's would be misleading; `brand` carries the shop name, and the
+details endpoint reports the shop's rating explicitly. `product_id` is the
+numeric listing id.
 </dd>
 </dl>
 </dd>
@@ -755,7 +785,7 @@ Search for products on a retailer.
 ```typescript
 await client.products.searchProducts({
     query: "query",
-    retailer: "amazon"
+    retailer: "retailer"
 });
 
 ```
@@ -792,7 +822,7 @@ await client.products.searchProducts({
 </dl>
 </details>
 
-<details><summary><code>client.products.<a href="/src/api/resources/products/client/Client.ts">getProductOffers</a>({ ...params }) -> unknown</code></summary>
+<details><summary><code>client.products.<a href="/src/api/resources/products/client/Client.ts">getProductOffers</a>({ ...params }) -> Zinc.GetProductOffersProductsProductIdOffersGetResponse</code></summary>
 <dl>
 <dd>
 
@@ -805,6 +835,9 @@ await client.products.searchProducts({
 <dd>
 
 Get offers for a product from a retailer.
+
+Not available for Shopify stores: a storefront lists one seller (itself),
+so per-variant price and availability live on the details endpoint instead.
 </dd>
 </dl>
 </dd>
@@ -821,7 +854,7 @@ Get offers for a product from a retailer.
 ```typescript
 await client.products.getProductOffers({
     product_id: "product_id",
-    retailer: "amazon"
+    retailer: "retailer"
 });
 
 ```
@@ -858,7 +891,7 @@ await client.products.getProductOffers({
 </dl>
 </details>
 
-<details><summary><code>client.products.<a href="/src/api/resources/products/client/Client.ts">getProductDetails</a>({ ...params }) -> unknown</code></summary>
+<details><summary><code>client.products.<a href="/src/api/resources/products/client/Client.ts">getProductDetails</a>({ ...params }) -> Zinc.GetProductDetailsProductsProductIdGetResponse</code></summary>
 <dl>
 <dd>
 
@@ -871,6 +904,38 @@ await client.products.getProductOffers({
 <dd>
 
 Get details for a product from a retailer.
+
+**Best Buy is addressed by `bsin`**, not by the numeric SKU — the bsin is the
+trailing id in a Best Buy product URL (`/product/{slug}/{bsin}`). Search
+results return the SKU as `product_id` and also carry the bsin, so pass the
+bsin here. The response repeats the SKU as `sku` for cross-referencing.
+
+Unlike `/search`, a Best Buy detail response is complete: detail pages are
+fully server-rendered, so nothing is withheld for client-side loading.
+
+**Shopify is addressed by (store, handle)**: pass the store's domain as
+`retailer` (e.g. `retailer=yetch.studio`) and the product handle — the slug
+in `/products/{handle}`, returned as `product_id` by search — as the path
+parameter. The response includes per-variant price and availability.
+`async` is not supported for Shopify stores.
+
+**Etsy is addressed by the numeric listing id** (returned as `product_id` by
+search). `price` is in minor units of `currency_code`, not converted to USD.
+
+Etsy ratings are the **shop's**, reported as `shop_review_average` /
+`shop_review_count`, and both cover only the **past year** — an established
+shop with no recent sales reports 0, and an unrated shop reports a null
+average rather than 0.0 stars. `stars` and `num_reviews` are deliberately
+not set: they mean a product's rating everywhere else in this API, and a
+seller's rating is a different claim.
+
+`listing_type` is `physical`, `download` or `both` — a download has nothing
+to ship. `available` accounts for the shop being on vacation as well as
+stock, so it can be false on an in-stock active listing; `shop_is_vacation`
+says which it was. `variants` is populated only when Etsy exposes a
+listing's inventory matrix — check `has_variations` to tell "no variants"
+from "variants not visible". `taxonomy_id` is Etsy's raw category id; there
+is no category name yet. `async` is not supported for Etsy.
 </dd>
 </dl>
 </dd>
@@ -887,7 +952,7 @@ Get details for a product from a retailer.
 ```typescript
 await client.products.getProductDetails({
     product_id: "product_id",
-    retailer: "amazon"
+    retailer: "retailer"
 });
 
 ```
@@ -1413,72 +1478,6 @@ await client.agent.search({
 </dl>
 </details>
 
-<details><summary><code>client.agent.<a href="/src/api/resources/agent/client/Client.ts">searchPost</a>({ ...params }) -> Zinc.SearchResponse</code></summary>
-<dl>
-<dd>
-
-#### 📝 Description
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-**Beta** — response shape may change. Cross-retailer product search for agents. Returns orderable listings whose
-`url` can be passed straight to POST /agent/orders.
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### 🔌 Usage
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-```typescript
-await client.agent.searchPost({
-    q: "q"
-});
-
-```
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### ⚙️ Parameters
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-**request:** `Zinc.AgentSearchPostRequest` 
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**requestOptions:** `AgentClient.RequestOptions` 
-    
-</dd>
-</dl>
-</dd>
-</dl>
-
-
-</dd>
-</dl>
-</details>
-
 <details><summary><code>client.agent.<a href="/src/api/resources/agent/client/Client.ts">productSearch</a>({ ...params }) -> Zinc.ProductSearchResponse</code></summary>
 <dl>
 <dd>
@@ -1545,73 +1544,7 @@ await client.agent.productSearch({
 </dl>
 </details>
 
-<details><summary><code>client.agent.<a href="/src/api/resources/agent/client/Client.ts">productSearchPost</a>({ ...params }) -> Zinc.ProductSearchResponse</code></summary>
-<dl>
-<dd>
-
-#### 📝 Description
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-Per-retailer product search for agents (amazon | walmart).
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### 🔌 Usage
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-```typescript
-await client.agent.productSearchPost({
-    query: "query",
-    retailer: "amazon"
-});
-
-```
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### ⚙️ Parameters
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-**request:** `Zinc.AgentProductSearchPostRequest` 
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**requestOptions:** `AgentClient.RequestOptions` 
-    
-</dd>
-</dl>
-</dd>
-</dl>
-
-
-</dd>
-</dl>
-</details>
-
-<details><summary><code>client.agent.<a href="/src/api/resources/agent/client/Client.ts">productOffers</a>({ ...params }) -> unknown</code></summary>
+<details><summary><code>client.agent.<a href="/src/api/resources/agent/client/Client.ts">productOffers</a>({ ...params }) -> Zinc.AgentProductOffersResponse</code></summary>
 <dl>
 <dd>
 
@@ -1677,73 +1610,7 @@ await client.agent.productOffers({
 </dl>
 </details>
 
-<details><summary><code>client.agent.<a href="/src/api/resources/agent/client/Client.ts">productOffersPost</a>({ ...params }) -> unknown</code></summary>
-<dl>
-<dd>
-
-#### 📝 Description
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-Offers/pricing for a specific product on a retailer.
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### 🔌 Usage
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-```typescript
-await client.agent.productOffersPost({
-    product_id: "product_id",
-    retailer: "amazon"
-});
-
-```
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### ⚙️ Parameters
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-**request:** `Zinc.AgentProductOffersPostRequest` 
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**requestOptions:** `AgentClient.RequestOptions` 
-    
-</dd>
-</dl>
-</dd>
-</dl>
-
-
-</dd>
-</dl>
-</details>
-
-<details><summary><code>client.agent.<a href="/src/api/resources/agent/client/Client.ts">productDetails</a>({ ...params }) -> unknown</code></summary>
+<details><summary><code>client.agent.<a href="/src/api/resources/agent/client/Client.ts">productDetails</a>({ ...params }) -> Zinc.AgentProductDetailsResponse</code></summary>
 <dl>
 <dd>
 
@@ -1790,72 +1657,6 @@ await client.agent.productDetails({
 <dd>
 
 **request:** `Zinc.AgentProductDetailsRequest` 
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**requestOptions:** `AgentClient.RequestOptions` 
-    
-</dd>
-</dl>
-</dd>
-</dl>
-
-
-</dd>
-</dl>
-</details>
-
-<details><summary><code>client.agent.<a href="/src/api/resources/agent/client/Client.ts">productDetailsPost</a>({ ...params }) -> unknown</code></summary>
-<dl>
-<dd>
-
-#### 📝 Description
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-Full product details for a specific product on a retailer.
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### 🔌 Usage
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-```typescript
-await client.agent.productDetailsPost({
-    product_id: "product_id",
-    retailer: "amazon"
-});
-
-```
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### ⚙️ Parameters
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-**request:** `Zinc.AgentProductDetailsPostRequest` 
     
 </dd>
 </dl>
@@ -2220,6 +2021,268 @@ await client.tracking.getPublicTracking({
 <dd>
 
 **requestOptions:** `TrackingClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+## Sandbox
+<details><summary><code>client.sandbox.<a href="/src/api/resources/sandbox/client/Client.ts">createSandboxKey</a>({ ...params }) -> Zinc.SandboxKeyResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Mint a provisional sandbox user + test API key. No account needed.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.sandbox.createSandboxKey({});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.SandboxKeyCreate | null` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `SandboxClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.sandbox.<a href="/src/api/resources/sandbox/client/Client.ts">claimSandbox</a>({ ...params }) -> Zinc.SandboxClaimResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Fold a provisional sandbox into the authenticated account.
+
+Always a merge: Stytch's callback creates a real user row on first login,
+so a caller reaching this endpoint already has an account. The agent's key
+is reassigned rather than revoked, so whatever it has hardcoded keeps
+working — that is the point of claiming rather than starting over.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.sandbox.claimSandbox({
+    token: "token"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.SandboxClaimRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `SandboxClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.sandbox.<a href="/src/api/resources/sandbox/client/Client.ts">getSandboxStatus</a>({ ...params }) -> Zinc.SandboxStatusResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Whether the sandbox this key belongs to has been claimed yet.
+
+An agent hands its claim URL to a human and then has no way to learn what
+happened — a device-code grant would tell it for free (issue #825). Until
+we have one, polling this closes the loop.
+
+Still provisional means nobody has claimed it. Past that, "not provisional"
+alone would be a lie — every ordinary account would read as claimed — so
+the answer comes from the claim event written on the account, which is
+also the only durable evidence a claim happened once the provisional row
+is deleted.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.sandbox.getSandboxStatus();
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.GetSandboxStatusSandboxStatusGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `SandboxClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.sandbox.<a href="/src/api/resources/sandbox/client/Client.ts">getQuickstart</a>() -> string</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+The agent quickstart, served as plain markdown.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.sandbox.getQuickstart();
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**requestOptions:** `SandboxClient.RequestOptions` 
     
 </dd>
 </dl>

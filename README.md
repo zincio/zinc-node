@@ -19,7 +19,6 @@ resource methods like `zinc.orders.createOrder(...)` or `zinc.search.search(...)
 
 - [Installation](#installation)
 - [Reference](#reference)
-- [Installation](#installation)
 - [Authentication](#authentication)
 - [Test Mode](#test-mode)
 - [Errors](#errors)
@@ -43,20 +42,14 @@ resource methods like `zinc.orders.createOrder(...)` or `zinc.search.search(...)
 
 ## Installation
 
-```sh
-npm i -s zinc
-```
-
-## Reference
-
-A full reference for this library is available [here](https://github.com/zincio/zinc-node/blob/HEAD/./reference.md).
-
-## Installation
-
 ```shell
 npm install zinc
 ```
 
+
+## Reference
+
+A full reference for this library is available [here](https://github.com/zincio/zinc-node/blob/HEAD/./reference.md).
 
 ## Authentication
 

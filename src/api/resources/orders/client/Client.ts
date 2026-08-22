@@ -336,14 +336,14 @@ export class OrdersClient {
     public downloadBulkResults(
         request: Zinc.DownloadBulkResultsOrdersBulkBatchIdResultsCsvGetRequest,
         requestOptions?: OrdersClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
+    ): core.HttpResponsePromise<string> {
         return core.HttpResponsePromise.fromPromise(this.__downloadBulkResults(request, requestOptions));
     }
 
     private async __downloadBulkResults(
         request: Zinc.DownloadBulkResultsOrdersBulkBatchIdResultsCsvGetRequest,
         requestOptions?: OrdersClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
+    ): Promise<core.WithRawResponse<string>> {
         const { batch_id: batchId, authorization } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
@@ -362,6 +362,7 @@ export class OrdersClient {
             method: "GET",
             headers: _headers,
             queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            responseType: "text",
             timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
             maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
             abortSignal: requestOptions?.abortSignal,
@@ -369,7 +370,7 @@ export class OrdersClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
+            return { data: _response.body as string, rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {
@@ -422,12 +423,15 @@ export class OrdersClient {
             offset,
             order_id: orderId,
             search,
+            merchant_order_id: merchantOrderId,
             status_filter: statusFilter,
             tracking_status: trackingStatus,
             has_tracking: hasTracking,
             return_status: returnStatus,
             created_after: createdAfter,
             created_before: createdBefore,
+            metadata_key: metadataKey,
+            metadata_value: metadataValue,
             include,
             authorization,
         } = request;
@@ -436,12 +440,15 @@ export class OrdersClient {
             offset,
             order_id: orderId,
             search,
+            merchant_order_id: merchantOrderId,
             status_filter: statusFilter,
             tracking_status: trackingStatus,
             has_tracking: hasTracking,
             return_status: returnStatus,
             created_after: createdAfter !== undefined ? createdAfter : undefined,
             created_before: createdBefore !== undefined ? createdBefore : undefined,
+            metadata_key: metadataKey,
+            metadata_value: metadataValue,
             include,
         };
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();

@@ -13,6 +13,8 @@ export interface ListOrdersOrdersGetRequest {
     order_id?: string | null;
     /** Partial match on order ID OR tracking number */
     search?: string | null;
+    /** Filter by the retailer's own order number (e.g. an Amazon `113-…` ID), matched exactly against any of the order's order-placing jobs. Exact, not partial — dashes in the term are matched both as typed and stripped. */
+    merchant_order_id?: string | null;
     /** Filter by order status */
     status_filter?: string | null;
     /** Filter to orders having at least one tracking number with this status */
@@ -25,6 +27,10 @@ export interface ListOrdersOrdersGetRequest {
     created_after?: string | null;
     /** Only orders created before this instant (exclusive) */
     created_before?: string | null;
+    /** Top-level `metadata` key to match, e.g. `po_number`. Must be sent together with `metadata_value`. Nested paths are not supported. */
+    metadata_key?: string | null;
+    /** Exact value `metadata_key` must equal. Matching is exact, not partial, and case-sensitive. Must be sent together with `metadata_key`. */
+    metadata_value?: string | null;
     /** Optional expansions. `tracking_events` embeds the full carrier checkpoint timeline (and latest status) on each tracking number; omitted by default to keep list payloads small. */
     include?: string | string[];
     authorization?: string | null;

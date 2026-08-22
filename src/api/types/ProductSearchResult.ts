@@ -30,4 +30,7 @@ export interface ProductSearchResult {
     preorder?: (boolean | null) | undefined;
     first_party_seller?: (boolean | null) | undefined;
     buyapi_hint?: (boolean | null) | undefined;
+    url?: (string | null) | undefined;
+    variant_id?: (string | null) | undefined;
+    currency_code?: (string | null) | undefined;
 }

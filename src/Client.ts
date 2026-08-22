@@ -7,6 +7,7 @@ import { OrdersClient } from "./api/resources/orders/client/Client.js";
 import { ProductsClient } from "./api/resources/products/client/Client.js";
 import { RetailersClient } from "./api/resources/retailers/client/Client.js";
 import { ReturnsClient } from "./api/resources/returns/client/Client.js";
+import { SandboxClient } from "./api/resources/sandbox/client/Client.js";
 import { SearchClient } from "./api/resources/search/client/Client.js";
 import { TrackingClient } from "./api/resources/tracking/client/Client.js";
 import { UsageClient } from "./api/resources/usage/client/Client.js";
@@ -31,6 +32,7 @@ export class ZincClient {
     protected _retailers: RetailersClient | undefined;
     protected _usage: UsageClient | undefined;
     protected _tracking: TrackingClient | undefined;
+    protected _sandbox: SandboxClient | undefined;
     protected _health: HealthClient | undefined;
 
     constructor(options: ZincClient.Options = {}) {
@@ -71,6 +73,10 @@ export class ZincClient {
 
     public get tracking(): TrackingClient {
         return (this._tracking ??= new TrackingClient(this._options));
+    }
+
+    public get sandbox(): SandboxClient {
+        return (this._sandbox ??= new SandboxClient(this._options));
     }
 
     public get health(): HealthClient {

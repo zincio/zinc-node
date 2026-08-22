@@ -18,6 +18,7 @@ export namespace OrderMilestone {
         TrackingAcquired: "tracking_acquired",
         Shipped: "shipped",
         Delivered: "delivered",
+        Undeliverable: "undeliverable",
         OrderFailed: "order_failed",
         Cancelled: "cancelled",
     } as const;

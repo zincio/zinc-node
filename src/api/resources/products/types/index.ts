@@ -1,3 +1,2 @@
-export * from "./GetProductDetailsProductsProductIdGetRequestRetailer.js";
-export * from "./GetProductOffersProductsProductIdOffersGetRequestRetailer.js";
-export * from "./SearchProductsProductsSearchGetRequestRetailer.js";
+export * from "./GetProductDetailsProductsProductIdGetResponse.js";
+export * from "./GetProductOffersProductsProductIdOffersGetResponse.js";

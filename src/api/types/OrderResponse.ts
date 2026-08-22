@@ -16,16 +16,21 @@ export interface OrderResponse {
     po_number?: (string | null) | undefined;
     handling_days_max?: (number | null) | undefined;
     is_gift?: boolean | undefined;
+    gift_message?: (string | null) | undefined;
     retailer_credentials_id: string | null;
     retailer_credentials_uuid?: (string | null) | undefined;
     /** Fulfillment result and price breakdown for a completed or failed order; null while processing. */
     job_result?: (Zinc.OrderJobResult | null) | undefined;
+    /** The retailer's own order number(s) for this order (e.g. an Amazon `113-…` ID), as recorded when it was placed. Empty while processing, or if the order never reached the retailer. */
+    merchant_order_ids?: string[] | undefined;
     tracking_numbers?: Zinc.TrackingNumberResponse[] | undefined;
     created_by?: (string | null) | undefined;
     user_id?: (number | null) | undefined;
     returns?: Zinc.ReturnRequestSummary[] | undefined;
     /** Stripe Connect charge details when this order was paid via Connect; null for prepaid-wallet orders. */
     connect?: (Zinc.OrderConnectInfo | null) | undefined;
+    /** End-customer email-notification status when the order opted into the notifications add-on; null when it didn't. */
+    customer_notifications?: (Zinc.CustomerNotificationStatus | null) | undefined;
     created_at: string;
     updated_at: string;
 }

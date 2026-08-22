@@ -36,6 +36,9 @@ describe("ProductsClient", () => {
                     preorder: true,
                     first_party_seller: true,
                     buyapi_hint: true,
+                    url: "url",
+                    variant_id: "variant_id",
+                    currency_code: "currency_code",
                 },
             ],
             next_page: 1,
@@ -45,7 +48,7 @@ describe("ProductsClient", () => {
 
         const response = await client.products.searchProducts({
             query: "query",
-            retailer: "amazon",
+            retailer: "retailer",
         });
         expect(response).toEqual(rawResponseBody);
     });
@@ -60,8 +63,8 @@ describe("ProductsClient", () => {
 
         await expect(async () => {
             return await client.products.searchProducts({
-                query: "query",
-                retailer: "amazon",
+                query: "x",
+                retailer: "retailer",
             });
         }).rejects.toThrow(Zinc.UnprocessableEntityError);
     });
@@ -70,7 +73,7 @@ describe("ProductsClient", () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 
-        const rawResponseBody = { key: "value" };
+        const rawResponseBody = { status: "completed" };
 
         server
             .mockEndpoint()
@@ -82,7 +85,7 @@ describe("ProductsClient", () => {
 
         const response = await client.products.getProductOffers({
             product_id: "product_id",
-            retailer: "amazon",
+            retailer: "retailer",
         });
         expect(response).toEqual(rawResponseBody);
     });
@@ -104,7 +107,7 @@ describe("ProductsClient", () => {
         await expect(async () => {
             return await client.products.getProductOffers({
                 product_id: "product_id",
-                retailer: "amazon",
+                retailer: "retailer",
             });
         }).rejects.toThrow(Zinc.UnprocessableEntityError);
     });
@@ -113,7 +116,7 @@ describe("ProductsClient", () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 
-        const rawResponseBody = { key: "value" };
+        const rawResponseBody = { status: "completed" };
 
         server
             .mockEndpoint()
@@ -125,7 +128,7 @@ describe("ProductsClient", () => {
 
         const response = await client.products.getProductDetails({
             product_id: "product_id",
-            retailer: "amazon",
+            retailer: "retailer",
         });
         expect(response).toEqual(rawResponseBody);
     });
@@ -147,7 +150,7 @@ describe("ProductsClient", () => {
         await expect(async () => {
             return await client.products.getProductDetails({
                 product_id: "product_id",
-                retailer: "amazon",
+                retailer: "retailer",
             });
         }).rejects.toThrow(Zinc.UnprocessableEntityError);
     });

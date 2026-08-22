@@ -1,6 +1,6 @@
 {
     "name": "zinc",
-    "version": "2026.7.17",
+    "version": "2026.8.21",
     "private": false,
     "repository": {
         "type": "git",
@@ -120,6 +120,17 @@
                 "default": "./dist/cjs/api/resources/tracking/exports.js"
             },
             "default": "./dist/cjs/api/resources/tracking/exports.js"
+        },
+        "./sandbox": {
+            "import": {
+                "types": "./dist/esm/api/resources/sandbox/exports.d.mts",
+                "default": "./dist/esm/api/resources/sandbox/exports.mjs"
+            },
+            "require": {
+                "types": "./dist/cjs/api/resources/sandbox/exports.d.ts",
+                "default": "./dist/cjs/api/resources/sandbox/exports.js"
+            },
+            "default": "./dist/cjs/api/resources/sandbox/exports.js"
         },
         "./health": {
             "import": {

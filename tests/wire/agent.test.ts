@@ -44,6 +44,7 @@ describe("AgentClient", () => {
             po_number: "po_number",
             handling_days_max: 1,
             is_gift: true,
+            gift_message: "gift_message",
             retailer_credentials_id: "retailer_credentials_id",
             retailer_credentials_uuid: "retailer_credentials_uuid",
             job_result: {
@@ -66,11 +67,13 @@ describe("AgentClient", () => {
                     converted_payment_total: 1,
                     currency: "currency",
                     payment_currency: "payment_currency",
+                    cart_items: [{}],
                     line_items: [{ key: "value" }],
                 },
                 estimated_delivery: "estimated_delivery",
                 merchant_order_ids: [{ key: "value" }],
             },
+            merchant_order_ids: ["merchant_order_ids"],
             tracking_numbers: [
                 {
                     id: "id",
@@ -112,6 +115,7 @@ describe("AgentClient", () => {
                 connected_account_id: "connected_account_id",
                 simulated: true,
             },
+            customer_notifications: { email: "email", delivered: true },
             created_at: "2024-01-15T09:30:00Z",
             updated_at: "2024-01-15T09:30:00Z",
         };
@@ -270,7 +274,7 @@ describe("AgentClient", () => {
             ],
         };
 
-        server.mockEndpoint().get("/agent/search").respondWith().statusCode(200).jsonBody(rawResponseBody).build();
+        server.mockEndpoint().post("/agent/search").respondWith().statusCode(200).jsonBody(rawResponseBody).build();
 
         const response = await client.agent.search({
             q: "q",
@@ -284,7 +288,7 @@ describe("AgentClient", () => {
 
         const rawResponseBody = { key: "value" };
 
-        server.mockEndpoint().get("/agent/search").respondWith().statusCode(402).jsonBody(rawResponseBody).build();
+        server.mockEndpoint().post("/agent/search").respondWith().statusCode(402).jsonBody(rawResponseBody).build();
 
         await expect(async () => {
             return await client.agent.search({
@@ -299,70 +303,10 @@ describe("AgentClient", () => {
 
         const rawResponseBody = { key: "value" };
 
-        server.mockEndpoint().get("/agent/search").respondWith().statusCode(422).jsonBody(rawResponseBody).build();
-
-        await expect(async () => {
-            return await client.agent.search({
-                q: "q",
-            });
-        }).rejects.toThrow(Zinc.UnprocessableEntityError);
-    });
-
-    test("searchPost (1)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = {
-            status: "status",
-            query: "query",
-            results: [
-                {
-                    url: "url",
-                    retailer: "retailer",
-                    title: "title",
-                    image: "image",
-                    brand: "brand",
-                    price: 1,
-                    stars: 1.1,
-                    num_reviews: 1,
-                    available: true,
-                },
-            ],
-        };
-
-        server.mockEndpoint().post("/agent/search").respondWith().statusCode(200).jsonBody(rawResponseBody).build();
-
-        const response = await client.agent.searchPost({
-            q: "q",
-        });
-        expect(response).toEqual(rawResponseBody);
-    });
-
-    test("searchPost (2)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = { key: "value" };
-
-        server.mockEndpoint().post("/agent/search").respondWith().statusCode(402).jsonBody(rawResponseBody).build();
-
-        await expect(async () => {
-            return await client.agent.searchPost({
-                q: "q",
-            });
-        }).rejects.toThrow(Zinc.PaymentRequiredError);
-    });
-
-    test("searchPost (3)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = { key: "value" };
-
         server.mockEndpoint().post("/agent/search").respondWith().statusCode(422).jsonBody(rawResponseBody).build();
 
         await expect(async () => {
-            return await client.agent.searchPost({
+            return await client.agent.search({
                 q: "q",
             });
         }).rejects.toThrow(Zinc.UnprocessableEntityError);
@@ -399,6 +343,9 @@ describe("AgentClient", () => {
                     preorder: true,
                     first_party_seller: true,
                     buyapi_hint: true,
+                    url: "url",
+                    variant_id: "variant_id",
+                    currency_code: "currency_code",
                 },
             ],
             next_page: 1,
@@ -406,7 +353,7 @@ describe("AgentClient", () => {
 
         server
             .mockEndpoint()
-            .get("/agent/products/search")
+            .post("/agent/products/search")
             .respondWith()
             .statusCode(200)
             .jsonBody(rawResponseBody)
@@ -427,7 +374,7 @@ describe("AgentClient", () => {
 
         server
             .mockEndpoint()
-            .get("/agent/products/search")
+            .post("/agent/products/search")
             .respondWith()
             .statusCode(402)
             .jsonBody(rawResponseBody)
@@ -449,7 +396,7 @@ describe("AgentClient", () => {
 
         server
             .mockEndpoint()
-            .get("/agent/products/search")
+            .post("/agent/products/search")
             .respondWith()
             .statusCode(422)
             .jsonBody(rawResponseBody)
@@ -463,110 +410,15 @@ describe("AgentClient", () => {
         }).rejects.toThrow(Zinc.UnprocessableEntityError);
     });
 
-    test("productSearchPost (1)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = {
-            status: "status",
-            results: [
-                {
-                    product_id: "product_id",
-                    title: "title",
-                    image: "image",
-                    brand: "brand",
-                    price: 1,
-                    stars: 1.1,
-                    num_reviews: 1,
-                    num_offers_estimate: 1,
-                    num_sales: 1,
-                    fresh: true,
-                    prime: true,
-                    pantry: true,
-                    addon: true,
-                    ship_price: 1,
-                    upc: "upc",
-                    mpn: "mpn",
-                    available: true,
-                    available_online: true,
-                    available_instore: true,
-                    freight_shipping: true,
-                    preorder: true,
-                    first_party_seller: true,
-                    buyapi_hint: true,
-                },
-            ],
-            next_page: 1,
-        };
-
-        server
-            .mockEndpoint()
-            .post("/agent/products/search")
-            .respondWith()
-            .statusCode(200)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        const response = await client.agent.productSearchPost({
-            query: "query",
-            retailer: "amazon",
-        });
-        expect(response).toEqual(rawResponseBody);
-    });
-
-    test("productSearchPost (2)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = { key: "value" };
-
-        server
-            .mockEndpoint()
-            .post("/agent/products/search")
-            .respondWith()
-            .statusCode(402)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.agent.productSearchPost({
-                query: "query",
-                retailer: "amazon",
-            });
-        }).rejects.toThrow(Zinc.PaymentRequiredError);
-    });
-
-    test("productSearchPost (3)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = { key: "value" };
-
-        server
-            .mockEndpoint()
-            .post("/agent/products/search")
-            .respondWith()
-            .statusCode(422)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.agent.productSearchPost({
-                query: "query",
-                retailer: "amazon",
-            });
-        }).rejects.toThrow(Zinc.UnprocessableEntityError);
-    });
-
     test("productOffers (1)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 
-        const rawResponseBody = { key: "value" };
+        const rawResponseBody = { status: "completed" };
 
         server
             .mockEndpoint()
-            .get("/agent/products/offers")
+            .post("/agent/products/offers")
             .respondWith()
             .statusCode(200)
             .jsonBody(rawResponseBody)
@@ -587,7 +439,7 @@ describe("AgentClient", () => {
 
         server
             .mockEndpoint()
-            .get("/agent/products/offers")
+            .post("/agent/products/offers")
             .respondWith()
             .statusCode(402)
             .jsonBody(rawResponseBody)
@@ -609,7 +461,7 @@ describe("AgentClient", () => {
 
         server
             .mockEndpoint()
-            .get("/agent/products/offers")
+            .post("/agent/products/offers")
             .respondWith()
             .statusCode(422)
             .jsonBody(rawResponseBody)
@@ -623,80 +475,15 @@ describe("AgentClient", () => {
         }).rejects.toThrow(Zinc.UnprocessableEntityError);
     });
 
-    test("productOffersPost (1)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = { key: "value" };
-
-        server
-            .mockEndpoint()
-            .post("/agent/products/offers")
-            .respondWith()
-            .statusCode(200)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        const response = await client.agent.productOffersPost({
-            product_id: "product_id",
-            retailer: "amazon",
-        });
-        expect(response).toEqual(rawResponseBody);
-    });
-
-    test("productOffersPost (2)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = { key: "value" };
-
-        server
-            .mockEndpoint()
-            .post("/agent/products/offers")
-            .respondWith()
-            .statusCode(402)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.agent.productOffersPost({
-                product_id: "product_id",
-                retailer: "amazon",
-            });
-        }).rejects.toThrow(Zinc.PaymentRequiredError);
-    });
-
-    test("productOffersPost (3)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = { key: "value" };
-
-        server
-            .mockEndpoint()
-            .post("/agent/products/offers")
-            .respondWith()
-            .statusCode(422)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.agent.productOffersPost({
-                product_id: "product_id",
-                retailer: "amazon",
-            });
-        }).rejects.toThrow(Zinc.UnprocessableEntityError);
-    });
-
     test("productDetails (1)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 
-        const rawResponseBody = { key: "value" };
+        const rawResponseBody = { status: "completed" };
 
         server
             .mockEndpoint()
-            .get("/agent/products/details")
+            .post("/agent/products/details")
             .respondWith()
             .statusCode(200)
             .jsonBody(rawResponseBody)
@@ -717,7 +504,7 @@ describe("AgentClient", () => {
 
         server
             .mockEndpoint()
-            .get("/agent/products/details")
+            .post("/agent/products/details")
             .respondWith()
             .statusCode(402)
             .jsonBody(rawResponseBody)
@@ -739,7 +526,7 @@ describe("AgentClient", () => {
 
         server
             .mockEndpoint()
-            .get("/agent/products/details")
+            .post("/agent/products/details")
             .respondWith()
             .statusCode(422)
             .jsonBody(rawResponseBody)
@@ -747,71 +534,6 @@ describe("AgentClient", () => {
 
         await expect(async () => {
             return await client.agent.productDetails({
-                product_id: "product_id",
-                retailer: "amazon",
-            });
-        }).rejects.toThrow(Zinc.UnprocessableEntityError);
-    });
-
-    test("productDetailsPost (1)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = { key: "value" };
-
-        server
-            .mockEndpoint()
-            .post("/agent/products/details")
-            .respondWith()
-            .statusCode(200)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        const response = await client.agent.productDetailsPost({
-            product_id: "product_id",
-            retailer: "amazon",
-        });
-        expect(response).toEqual(rawResponseBody);
-    });
-
-    test("productDetailsPost (2)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = { key: "value" };
-
-        server
-            .mockEndpoint()
-            .post("/agent/products/details")
-            .respondWith()
-            .statusCode(402)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.agent.productDetailsPost({
-                product_id: "product_id",
-                retailer: "amazon",
-            });
-        }).rejects.toThrow(Zinc.PaymentRequiredError);
-    });
-
-    test("productDetailsPost (3)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-
-        const rawResponseBody = { key: "value" };
-
-        server
-            .mockEndpoint()
-            .post("/agent/products/details")
-            .respondWith()
-            .statusCode(422)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.agent.productDetailsPost({
                 product_id: "product_id",
                 retailer: "amazon",
             });

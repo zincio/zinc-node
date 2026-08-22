@@ -5,5 +5,6 @@ export const TrackingStatus = {
     Pending: "pending",
     InTransit: "in_transit",
     Delivered: "delivered",
+    Undeliverable: "undeliverable",
 } as const;
 export type TrackingStatus = (typeof TrackingStatus)[keyof typeof TrackingStatus];
