@@ -31,6 +31,8 @@ export interface ListOrdersOrdersGetRequest {
     metadata_key?: string | null;
     /** Exact value `metadata_key` must equal. Matching is exact, not partial, and case-sensitive. Must be sent together with `metadata_key`. */
     metadata_value?: string | null;
+    /** Filter to orders placed by one org teammate, matched as a case-insensitive substring of their email. Only ever narrows within the caller's organization; a solo user can only match their own address. */
+    user_email?: string | null;
     /** Optional expansions. `tracking_events` embeds the full carrier checkpoint timeline (and latest status) on each tracking number; omitted by default to keep list payloads small. */
     include?: string | string[];
     authorization?: string | null;

@@ -11,9 +11,9 @@ export interface GetProductOffersProductsProductIdOffersGetRequest {
     product_id: string;
     /** Retailer identifier: amazon, walmart, bestbuy, etsy, or a Shopify store's domain (e.g. retailer=yetch.studio) */
     retailer: string;
-    /** Max response age in seconds (mutually exclusive with newer_than) */
+    /** Max response age in seconds, at least 31 (mutually exclusive with newer_than) */
     max_age?: number | null;
-    /** Minimum retrieval timestamp (mutually exclusive with max_age) */
+    /** Minimum retrieval timestamp, as a unix time (mutually exclusive with max_age). Windows shorter than 31s are widened to it. */
     newer_than?: number | null;
     /** Return immediately with status=processing */
     async?: boolean | null;

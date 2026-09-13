@@ -25,9 +25,12 @@ export class SearchClient {
     /**
      * Search for products across retailers; returns orderable zn_sku_ listings.
      *
+     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+     *
      * @param {Zinc.SearchSearchGetRequest} request
      * @param {SearchClient.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Zinc.PaymentRequiredError}
      * @throws {@link Zinc.UnprocessableEntityError}
      * @throws {@link errors.ZincError}
      * @throws {@link errors.ZincTimeoutError}
@@ -48,9 +51,11 @@ export class SearchClient {
         request: Zinc.SearchSearchGetRequest,
         requestOptions?: SearchClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.SearchResponse>> {
-        const { q, authorization } = request;
+        const { q, min_price: minPrice, max_price: maxPrice, authorization } = request;
         const _queryParams: Record<string, unknown> = {
             q,
+            min_price: minPrice,
+            max_price: maxPrice,
         };
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
@@ -85,6 +90,8 @@ export class SearchClient {
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 402:
+                    throw new Zinc.PaymentRequiredError(_response.error.body as unknown, _response.rawResponse);
                 case 422:
                     throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
                 default:

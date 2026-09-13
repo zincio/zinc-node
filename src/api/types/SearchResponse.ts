@@ -9,4 +9,8 @@ export interface SearchResponse {
     status: string;
     query: string;
     results?: Zinc.Sku[] | undefined;
+    /** How many orderable results the min_price/max_price clamp removed; null when no clamp was set. */
+    excluded_by_price?: (number | null) | undefined;
+    /** Set when the result list is empty for a reason the caller can act on. */
+    hint?: (string | null) | undefined;
 }

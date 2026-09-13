@@ -163,7 +163,7 @@ export class ReturnsClient {
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
                 case 409:
-                    throw new Zinc.ConflictError(_response.error.body as Zinc.ErrorResponse, _response.rawResponse);
+                    throw new Zinc.ConflictError(_response.error.body as unknown, _response.rawResponse);
                 case 422:
                     throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
                 default:

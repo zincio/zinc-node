@@ -9,6 +9,8 @@
 export interface SandboxKeyResponse {
     /** Sandbox API key (zn_test_...). Send as `Authorization: Bearer <api_key>` — test keys route to the sandbox automatically, no extra headers needed. */
     api_key: string;
+    /** Same value as `api_key`; every key response carries both names. */
+    key: string;
     expires_policy: string;
     quickstart_url: string;
     /** A complete valid body for POST /orders — try it as-is. */

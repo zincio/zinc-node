@@ -467,6 +467,74 @@ await client.orders.createOrder({
 </dl>
 </details>
 
+<details><summary><code>client.orders.<a href="/src/api/resources/orders/client/Client.ts">exportOrdersCsv</a>({ ...params }) -> string</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Stream the current user's orders as a CSV file.
+
+Takes the same filters as ``GET /orders`` (via the shared
+``_visible_orders_filter``) so an export always contains exactly the rows
+the caller was looking at — but no ``limit``/``offset``: the export covers
+the whole filtered set, paged internally so memory stays flat.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.orders.exportOrdersCsv();
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.ExportOrdersCsvOrdersExportGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `OrdersClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 <details><summary><code>client.orders.<a href="/src/api/resources/orders/client/Client.ts">listTestProducts</a>() -> Record&lt;string, unknown&gt;</code></summary>
 <dl>
 <dd>
@@ -769,6 +837,8 @@ the *shop*, not the listing, and reporting a seller's rating as the
 product's would be misleading; `brand` carries the shop name, and the
 details endpoint reports the shop's rating explicitly. `product_id` is the
 numeric listing id.
+
+**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
 </dd>
 </dl>
 </dd>
@@ -838,6 +908,8 @@ Get offers for a product from a retailer.
 
 Not available for Shopify stores: a storefront lists one seller (itself),
 so per-variant price and availability live on the details endpoint instead.
+
+**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
 </dd>
 </dl>
 </dd>
@@ -936,6 +1008,8 @@ says which it was. `variants` is populated only when Etsy exposes a
 listing's inventory matrix — check `has_variations` to tell "no variants"
 from "variants not visible". `taxonomy_id` is Etsy's raw category id; there
 is no category name yet. `async` is not supported for Etsy.
+
+**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
 </dd>
 </dl>
 </dd>
@@ -1003,6 +1077,8 @@ await client.products.getProductDetails({
 <dd>
 
 Search for products across retailers; returns orderable zn_sku_ listings.
+
+**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
 </dd>
 </dl>
 </dd>
@@ -1966,6 +2042,199 @@ await client.usage.getMyUsage();
 </dl>
 </details>
 
+## Wallet
+<details><summary><code>client.wallet.<a href="/src/api/resources/wallet/client/Client.ts">getWallet</a>({ ...params }) -> Zinc.WalletResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Get your wallet balance.
+
+All amounts are integer cents. `balance` is the ledger balance;
+`spendable_balance` is what `POST /orders` actually checks against (the two
+differ only for Zinc Connect accounts with in-flight holds). An order needs
+`max_price + order_fee_cents` spendable, so compare against that before
+placing one instead of discovering a shortfall as a 402. Bulk-deal customers
+(`billed_by_invoice: true`) are invoiced monthly and skip the balance check.
+
+Under a `zn_test_` key (or `X-Test-Mode`) this reads the sandbox wallet,
+which sandbox orders never draw down. Funds are added from the dashboard.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.wallet.getWallet();
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.GetWalletWalletMeGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `WalletClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+## Stats
+<details><summary><code>client.stats.<a href="/src/api/resources/stats/client/Client.ts">getDeliveryMap</a>() -> Zinc.DeliveryMapResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Recent delivered orders as anonymized, city-level map points.
+
+Public and unauthenticated — feeds the marketing site's globe. Points are
+ZIP-centroid coordinates rounded to two decimals with a curated category
+emoji; deduplicated and capped. Cached for about an hour.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.stats.getDeliveryMap();
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**requestOptions:** `StatsClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.stats.<a href="/src/api/resources/stats/client/Client.ts">getLifetimeStats</a>() -> Zinc.LifetimeStatsResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Zinc's all-time successful-order count and GMV.
+
+Public and unauthenticated. Top-level numbers are v2 (this service);
+``v1`` is the worker-computed legacy snapshot (seed until the first
+compute lands); ``combined`` sums both. Cached for about a day.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.stats.getLifetimeStats();
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**requestOptions:** `StatsClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 ## Tracking
 <details><summary><code>client.tracking.<a href="/src/api/resources/tracking/client/Client.ts">getPublicTracking</a>({ ...params }) -> Zinc.PublicTrackingResponse</code></summary>
 <dl>
@@ -2283,6 +2552,461 @@ await client.sandbox.getQuickstart();
 <dd>
 
 **requestOptions:** `SandboxClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+## Device
+<details><summary><code>client.device.<a href="/src/api/resources/device/client/Client.ts">createDeviceCode</a>({ ...params }) -> Zinc.DeviceCodeResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Mint a device code. No account needed.
+
+Send your `zn_test_` sandbox key as the bearer and the sandbox comes along:
+when the owner approves, its orders and key move onto their account and
+your sandbox key keeps working, alongside the live key you receive.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.device.createDeviceCode({
+    body: {}
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.CreateDeviceCodeDeviceCodePostRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `DeviceClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.device.<a href="/src/api/resources/device/client/Client.ts">describeDeviceCode</a>({ ...params }) -> Zinc.DeviceCodeInfo</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Public on purpose: it holds only what the agent said about itself, and
+the approval page needs it before the human has signed in.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.device.describeDeviceCode({
+    user_code: "user_code"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.DescribeDeviceCodeDeviceCodesUserCodeGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `DeviceClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.device.<a href="/src/api/resources/device/client/Client.ts">decideDeviceCode</a>({ ...params }) -> Zinc.DeviceApproveResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+The human's decision. A machine credential must never make it: an API
+key approving a device code would be a key minting a key.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.device.decideDeviceCode({
+    user_code: "user_code",
+    granted: true
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.DeviceApproveRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `DeviceClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.device.<a href="/src/api/resources/device/client/Client.ts">redeemDeviceCode</a>({ ...params }) -> Zinc.ApiKeyExchangeResponse</code></summary>
+<dl>
+<dd>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.device.redeemDeviceCode({
+    device_code: "device_code"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.DeviceTokenRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `DeviceClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+## Webhooks
+<details><summary><code>client.webhooks.<a href="/src/api/resources/webhooks/client/Client.ts">getWebhookEndpoint</a>({ ...params }) -> Zinc.WebhookEndpointResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+The URL Zinc delivers this account's webhooks to, and the HMAC secret
+that signs them. Both are null until ``PUT /webhooks/endpoint`` is called.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.webhooks.getWebhookEndpoint();
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.GetWebhookEndpointWebhooksEndpointGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `WebhooksClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.webhooks.<a href="/src/api/resources/webhooks/client/Client.ts">setWebhookEndpoint</a>({ ...params }) -> Zinc.WebhookEndpointResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Register (or replace) the webhook URL for this account.
+
+Every order and return event Zinc emits for the account is POSTed to this
+URL. A signing secret is generated on first registration and returned so
+the caller can verify the ``X-Webhook-Signature`` header; replacing the URL
+keeps the existing secret, so a URL move never invalidates verification.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.webhooks.setWebhookEndpoint({
+    url: "https://example.com/zinc/webhook"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.WebhookEndpointUpdate` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `WebhooksClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.webhooks.<a href="/src/api/resources/webhooks/client/Client.ts">clearWebhookEndpoint</a>({ ...params }) -> void</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Stop webhook delivery for this account by clearing the URL.
+
+The signing secret is kept, so re-registering a URL later resumes
+deliveries signed with the same secret the caller already verifies against.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.webhooks.clearWebhookEndpoint();
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.ClearWebhookEndpointWebhooksEndpointDeleteRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `WebhooksClient.RequestOptions` 
     
 </dd>
 </dl>

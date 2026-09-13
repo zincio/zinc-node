@@ -13,5 +13,7 @@ export interface BulkValidateResponse {
     estimated_total_cents: number;
     wallet_balance_cents: number;
     sufficient_funds: boolean;
+    billed_by_invoice?: boolean | undefined;
+    over_credit_limit?: boolean | undefined;
     rows?: Zinc.BulkRowValidation[] | undefined;
 }

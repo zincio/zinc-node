@@ -432,6 +432,7 @@ export class OrdersClient {
             created_before: createdBefore,
             metadata_key: metadataKey,
             metadata_value: metadataValue,
+            user_email: userEmail,
             include,
             authorization,
         } = request;
@@ -449,6 +450,7 @@ export class OrdersClient {
             created_before: createdBefore !== undefined ? createdBefore : undefined,
             metadata_key: metadataKey,
             metadata_value: metadataValue,
+            user_email: userEmail,
             include,
         };
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
@@ -582,6 +584,112 @@ export class OrdersClient {
         }
 
         return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/orders");
+    }
+
+    /**
+     * Stream the current user's orders as a CSV file.
+     *
+     * Takes the same filters as ``GET /orders`` (via the shared
+     * ``_visible_orders_filter``) so an export always contains exactly the rows
+     * the caller was looking at — but no ``limit``/``offset``: the export covers
+     * the whole filtered set, paged internally so memory stays flat.
+     *
+     * @param {Zinc.ExportOrdersCsvOrdersExportGetRequest} request
+     * @param {OrdersClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Zinc.UnprocessableEntityError}
+     * @throws {@link errors.ZincError}
+     * @throws {@link errors.ZincTimeoutError}
+     *
+     * @example
+     *     await client.orders.exportOrdersCsv()
+     */
+    public exportOrdersCsv(
+        request: Zinc.ExportOrdersCsvOrdersExportGetRequest = {},
+        requestOptions?: OrdersClient.RequestOptions,
+    ): core.HttpResponsePromise<string> {
+        return core.HttpResponsePromise.fromPromise(this.__exportOrdersCsv(request, requestOptions));
+    }
+
+    private async __exportOrdersCsv(
+        request: Zinc.ExportOrdersCsvOrdersExportGetRequest = {},
+        requestOptions?: OrdersClient.RequestOptions,
+    ): Promise<core.WithRawResponse<string>> {
+        const {
+            order_id: orderId,
+            search,
+            status_filter: statusFilter,
+            merchant_order_id: merchantOrderId,
+            tracking_status: trackingStatus,
+            has_tracking: hasTracking,
+            return_status: returnStatus,
+            created_after: createdAfter,
+            created_before: createdBefore,
+            metadata_key: metadataKey,
+            metadata_value: metadataValue,
+            user_email: userEmail,
+            authorization,
+        } = request;
+        const _queryParams: Record<string, unknown> = {
+            order_id: orderId,
+            search,
+            status_filter: statusFilter,
+            merchant_order_id: merchantOrderId,
+            tracking_status: trackingStatus,
+            has_tracking: hasTracking,
+            return_status: returnStatus,
+            created_after: createdAfter !== undefined ? createdAfter : undefined,
+            created_before: createdBefore !== undefined ? createdBefore : undefined,
+            metadata_key: metadataKey,
+            metadata_value: metadataValue,
+            user_email: userEmail,
+        };
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            mergeOnlyDefinedHeaders({ authorization: authorization ?? undefined }),
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.ZincEnvironment.Production,
+                "orders/export",
+            ),
+            method: "GET",
+            headers: _headers,
+            queryString: core.url
+                .queryBuilder()
+                .addMany(_queryParams)
+                .mergeAdditional(requestOptions?.queryParams)
+                .build(),
+            responseType: "text",
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as string, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 422:
+                    throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.ZincError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/orders/export");
     }
 
     /**

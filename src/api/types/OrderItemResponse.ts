@@ -17,6 +17,7 @@ export interface OrderItemResponse {
     condition_not_in?: (Zinc.ProductCondition[] | null) | undefined;
     status: Zinc.OrderItemStatus;
     cancellation_reason?: (string | null) | undefined;
+    error_type?: (string | null) | undefined;
     created_at: string;
     updated_at: string;
 }

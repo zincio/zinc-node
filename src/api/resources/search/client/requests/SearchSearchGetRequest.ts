@@ -9,5 +9,9 @@
 export interface SearchSearchGetRequest {
     /** Search term */
     q: string;
+    /** Cents. Drop results priced below this. */
+    min_price?: number | null;
+    /** Cents. Drop results priced above this. Pass the `max_price` you intend to send to POST /orders and every result returned fits it. Results with no known price are dropped when a clamp is set. */
+    max_price?: number | null;
     authorization?: string | null;
 }

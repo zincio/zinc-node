@@ -19,7 +19,7 @@ export interface PublicRetailer {
     no_account_needed?: boolean | undefined;
     /** Whether you can order through your own retailer account. */
     use_your_account?: boolean | undefined;
-    /** ISO 3166-1 alpha-2 countries we ship to (defaults to ['US']). */
+    /** ISO 3166-1 alpha-2 countries this retailer has declared it ships to. Empty = no declared restriction. */
     supported_countries?: string[] | undefined;
     /** Whether free shipping is offered (unconditionally or above free_shipping_threshold_cents). */
     free_shipping?: boolean | undefined;

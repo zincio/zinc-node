@@ -25,6 +25,8 @@ describe("SearchClient", () => {
                     available: true,
                 },
             ],
+            excluded_by_price: 1,
+            hint: "hint",
         };
 
         server.mockEndpoint().get("/search").respondWith().statusCode(200).jsonBody(rawResponseBody).build();
@@ -36,6 +38,21 @@ describe("SearchClient", () => {
     });
 
     test("search (2)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = { key: "value" };
+
+        server.mockEndpoint().get("/search").respondWith().statusCode(402).jsonBody(rawResponseBody).build();
+
+        await expect(async () => {
+            return await client.search.search({
+                q: "x",
+            });
+        }).rejects.toThrow(Zinc.PaymentRequiredError);
+    });
+
+    test("search (3)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 

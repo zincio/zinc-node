@@ -11,6 +11,7 @@ describe("SandboxClient", () => {
         const rawRequestBody = {};
         const rawResponseBody = {
             api_key: "api_key",
+            key: "key",
             expires_policy: "expires_policy",
             quickstart_url: "quickstart_url",
             example_order: { key: "value" },

@@ -5,7 +5,9 @@
  *
  * Supports international addresses. The `state` field is optional for countries
  * that don't use states/provinces. The `country` field uses ISO 3166-1 alpha-2
- * country codes (e.g., "US", "CA", "GB", "DE").
+ * country codes (e.g., "US", "CA", "GB", "DE"), which are required rather than
+ * inferred — a longer spelling like "USA" is rejected with the code to use, so
+ * everything downstream can rely on seeing alpha-2.
  */
 export interface Address {
     first_name: string;
@@ -14,7 +16,9 @@ export interface Address {
     address_line2?: (string | null) | undefined;
     city: string;
     state?: (string | null) | undefined;
+    /** Postal code. For a US address this must be a ZIP: 5 digits, optionally +4 (e.g. '98632' or '27517-8761'). */
     postal_code: string;
     phone_number: string;
+    /** Country as an ISO 3166-1 alpha-2 code (e.g. 'US', 'CA', 'GB', 'DE'). Case-insensitive. Longer spellings such as 'USA' or 'United States' are rejected — the error names the code to use. */
     country?: string | undefined;
 }

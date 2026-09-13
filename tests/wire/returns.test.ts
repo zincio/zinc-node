@@ -102,7 +102,7 @@ describe("ReturnsClient", () => {
             ],
             reason: "damaged",
         };
-        const rawResponseBody = { error: { code: "unauthorized", message: "message" } };
+        const rawResponseBody = { key: "value" };
 
         server
             .mockEndpoint()

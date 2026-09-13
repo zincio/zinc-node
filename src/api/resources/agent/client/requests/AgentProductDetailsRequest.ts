@@ -14,9 +14,9 @@ export interface AgentProductDetailsRequest {
     product_id: string;
     /** Retailer: amazon or walmart */
     retailer: Zinc.AgentProductDetailsRequestRetailer;
-    /** Max response age in seconds */
+    /** Max response age in seconds, at least 31 (mutually exclusive with newer_than) */
     max_age?: number | null;
-    /** Minimum retrieval timestamp */
+    /** Minimum retrieval timestamp, as a unix time (mutually exclusive with max_age). Windows shorter than 31s are widened to it. */
     newer_than?: number | null;
     /** Return immediately with status=processing */
     async?: boolean | null;

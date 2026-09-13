@@ -55,9 +55,12 @@ export class ProductsClient {
      * details endpoint reports the shop's rating explicitly. `product_id` is the
      * numeric listing id.
      *
+     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+     *
      * @param {Zinc.SearchProductsProductsSearchGetRequest} request
      * @param {ProductsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Zinc.PaymentRequiredError}
      * @throws {@link Zinc.UnprocessableEntityError}
      * @throws {@link errors.ZincError}
      * @throws {@link errors.ZincTimeoutError}
@@ -119,6 +122,8 @@ export class ProductsClient {
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 402:
+                    throw new Zinc.PaymentRequiredError(_response.error.body as unknown, _response.rawResponse);
                 case 422:
                     throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -139,9 +144,12 @@ export class ProductsClient {
      * Not available for Shopify stores: a storefront lists one seller (itself),
      * so per-variant price and availability live on the details endpoint instead.
      *
+     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+     *
      * @param {Zinc.GetProductOffersProductsProductIdOffersGetRequest} request
      * @param {ProductsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Zinc.PaymentRequiredError}
      * @throws {@link Zinc.UnprocessableEntityError}
      * @throws {@link errors.ZincError}
      * @throws {@link errors.ZincTimeoutError}
@@ -213,6 +221,8 @@ export class ProductsClient {
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 402:
+                    throw new Zinc.PaymentRequiredError(_response.error.body as unknown, _response.rawResponse);
                 case 422:
                     throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -262,9 +272,12 @@ export class ProductsClient {
      * from "variants not visible". `taxonomy_id` is Etsy's raw category id; there
      * is no category name yet. `async` is not supported for Etsy.
      *
+     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+     *
      * @param {Zinc.GetProductDetailsProductsProductIdGetRequest} request
      * @param {ProductsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Zinc.PaymentRequiredError}
      * @throws {@link Zinc.UnprocessableEntityError}
      * @throws {@link errors.ZincError}
      * @throws {@link errors.ZincTimeoutError}
@@ -336,6 +349,8 @@ export class ProductsClient {
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 402:
+                    throw new Zinc.PaymentRequiredError(_response.error.body as unknown, _response.rawResponse);
                 case 422:
                     throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
                 default:

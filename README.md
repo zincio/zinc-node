@@ -3,7 +3,7 @@
 [![fern shield](https://img.shields.io/badge/%F0%9F%8C%BF-Built%20with%20Fern-brightgreen)](https://buildwithfern.com?utm_source=github&utm_medium=github&utm_campaign=readme&utm_source=https%3A%2F%2Fgithub.com%2Fzincio%2Fzinc-node)
 [![npm shield](https://img.shields.io/npm/v/zinc)](https://www.npmjs.com/package/zinc)
 
-**`zinc`** is the official TypeScript SDK for the [Zinc API](https://www.zinc.com/docs) —
+**`zinc`** is the official SDK for the [Zinc API](https://www.zinc.com/docs) —
 search, buy, track, and return products from major online retailers
 (Amazon, Walmart, and more) through a single, type-safe API.
 
@@ -11,8 +11,10 @@ Keywords: e-commerce API, place an order, buy products programmatically,
 Amazon ordering API, checkout automation, order tracking, returns,
 product search, AI agent commerce, autonomous purchasing, MPP / HTTP 402.
 
-Every method is fully typed. Instantiate `ZincClient` once and call
-resource methods like `zinc.orders.createOrder(...)` or `zinc.search.search(...)`.
+Every method is fully typed. Instantiate `ZincClient` once and call resource
+methods on it — placing an order, searching for a product, and tracking a
+shipment are each a single call. (Method names follow each language's
+convention: `createOrder` in TypeScript, `create_order` in Python.)
 
 
 ## Table of Contents

@@ -45,6 +45,7 @@ export class AgentClient {
      * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Zinc.PaymentRequiredError}
+     * @throws {@link Zinc.ConflictError}
      * @throws {@link Zinc.UnprocessableEntityError}
      * @throws {@link errors.ZincError}
      * @throws {@link errors.ZincTimeoutError}
@@ -118,6 +119,8 @@ export class AgentClient {
             switch (_response.error.statusCode) {
                 case 402:
                     throw new Zinc.PaymentRequiredError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new Zinc.ConflictError(_response.error.body as unknown, _response.rawResponse);
                 case 422:
                     throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -160,9 +163,11 @@ export class AgentClient {
         request: Zinc.AgentSearchRequest,
         requestOptions?: AgentClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.SearchResponse>> {
-        const { q } = request;
+        const { q, min_price: minPrice, max_price: maxPrice } = request;
         const _queryParams: Record<string, unknown> = {
             q,
+            min_price: minPrice,
+            max_price: maxPrice,
         };
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(this._options?.headers, requestOptions?.headers);
         const _response = await core.fetcher({

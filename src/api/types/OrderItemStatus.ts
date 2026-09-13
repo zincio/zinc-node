@@ -8,5 +8,6 @@ export const OrderItemStatus = {
     Delivered: "delivered",
     Cancelled: "cancelled",
     Failed: "failed",
+    Skipped: "skipped",
 } as const;
 export type OrderItemStatus = (typeof OrderItemStatus)[keyof typeof OrderItemStatus];

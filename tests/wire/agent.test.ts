@@ -35,6 +35,7 @@ describe("AgentClient", () => {
                     condition_not_in: ["New"],
                     status: "pending",
                     cancellation_reason: "cancellation_reason",
+                    error_type: "error_type",
                     created_at: "2024-01-15T09:30:00Z",
                     updated_at: "2024-01-15T09:30:00Z",
                 },
@@ -115,7 +116,24 @@ describe("AgentClient", () => {
                 connected_account_id: "connected_account_id",
                 simulated: true,
             },
+            payment: {
+                mode: "card",
+                state: "state",
+                authorized_cents: 1,
+                fee_cents: 1,
+                stripe_fee_cents: 1,
+                captured_cents: 1,
+                payment_method: "payment_method",
+                payment_intent_id: "payment_intent_id",
+                simulated: true,
+            },
             customer_notifications: { email: "email", delivered: true },
+            fulfillment: {
+                gift: "best_effort",
+                items: "best_effort",
+                quantity: "best_effort",
+                concessions: [{ concern: "gift", code: "code" }],
+            },
             created_at: "2024-01-15T09:30:00Z",
             updated_at: "2024-01-15T09:30:00Z",
         };
@@ -223,6 +241,57 @@ describe("AgentClient", () => {
             .post("/agent/orders")
             .jsonBody(rawRequestBody)
             .respondWith()
+            .statusCode(409)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.agent.createMppOrder({
+                body: {
+                    products: [
+                        {
+                            url: "url",
+                        },
+                        {
+                            url: "url",
+                        },
+                    ],
+                    shipping_address: {
+                        first_name: "first_name",
+                        last_name: "last_name",
+                        address_line1: "address_line1",
+                        city: "city",
+                        postal_code: "postal_code",
+                        phone_number: "phone_number",
+                    },
+                    max_price: 1,
+                },
+            });
+        }).rejects.toThrow(Zinc.ConflictError);
+    });
+
+    test("createMppOrder (4)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+        const rawRequestBody = {
+            products: [{ url: "url" }, { url: "url" }],
+            shipping_address: {
+                first_name: "first_name",
+                last_name: "last_name",
+                address_line1: "address_line1",
+                city: "city",
+                postal_code: "postal_code",
+                phone_number: "phone_number",
+            },
+            max_price: 1,
+        };
+        const rawResponseBody = { key: "value" };
+
+        server
+            .mockEndpoint()
+            .post("/agent/orders")
+            .jsonBody(rawRequestBody)
+            .respondWith()
             .statusCode(422)
             .jsonBody(rawResponseBody)
             .build();
@@ -272,6 +341,8 @@ describe("AgentClient", () => {
                     available: true,
                 },
             ],
+            excluded_by_price: 1,
+            hint: "hint",
         };
 
         server.mockEndpoint().post("/agent/search").respondWith().statusCode(200).jsonBody(rawResponseBody).build();
@@ -317,22 +388,52 @@ describe("AgentClient", () => {
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 
         const rawResponseBody = {
-            status: "status",
+            status: "completed",
             results: [
                 {
-                    product_id: "product_id",
-                    title: "title",
-                    image: "image",
-                    brand: "brand",
-                    price: 1,
-                    stars: 1.1,
-                    num_reviews: 1,
-                    num_offers_estimate: 1,
-                    num_sales: 1,
-                    fresh: true,
+                    product_id: "B000NPYY04",
+                    title: "Nature's Bounty Fish Oil, 1200 mg Omega-3, 200 Rapid Release Softgels",
+                    image: "https://m.media-amazon.com/images/I/51KGjV22PWL._AC_US218_.jpg",
+                    brand: "Nature's Bounty",
+                    price: 1248,
+                    stars: 4.5,
+                    num_reviews: 39510,
+                    num_offers_estimate: 12,
+                    num_sales: 30000,
+                    product_details: ["200 Count (Pack of 1)"],
+                    fresh: false,
                     prime: true,
-                    pantry: true,
-                    addon: true,
+                    pantry: false,
+                    addon: false,
+                    ship_price: 1,
+                    upc: "upc",
+                    mpn: "mpn",
+                    available: true,
+                    available_online: true,
+                    available_instore: true,
+                    freight_shipping: true,
+                    preorder: true,
+                    first_party_seller: true,
+                    buyapi_hint: true,
+                    url: "url",
+                    variant_id: "variant_id",
+                    currency_code: "currency_code",
+                },
+                {
+                    product_id: "B004U3Y9FU",
+                    title: "Nature Made Burpless Fish Oil 1000 mg Softgels, 150 Count",
+                    image: "https://m.media-amazon.com/images/I/516F1UWawAL._AC_US218_.jpg",
+                    brand: "Nature Made",
+                    price: 1299,
+                    stars: 4.7,
+                    num_reviews: 22087,
+                    num_offers_estimate: 8,
+                    num_sales: 20000,
+                    product_details: ["150 Count (Pack of 1)"],
+                    fresh: false,
+                    prime: true,
+                    pantry: false,
+                    addon: false,
                     ship_price: 1,
                     upc: "upc",
                     mpn: "mpn",
@@ -348,7 +449,7 @@ describe("AgentClient", () => {
                     currency_code: "currency_code",
                 },
             ],
-            next_page: 1,
+            next_page: 2,
         };
 
         server
@@ -414,7 +515,53 @@ describe("AgentClient", () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 
-        const rawResponseBody = { status: "completed" };
+        const rawResponseBody = {
+            status: "completed",
+            code: "code",
+            message: "message",
+            retailer: "amazon",
+            asin: "B00KFP6NHO",
+            offers: [
+                {
+                    offer_id: "5ZwHjTcqVwZHZmB3IOKCbwUmf5NmT1fnfGhbwOQ0B5",
+                    price: 799,
+                    condition: "New",
+                    available: true,
+                    seller: { id: "ATVPDKIKX0DER", name: "Amazon.com", first_party: true },
+                    marketplace_fulfilled: true,
+                    prime_only: false,
+                    international: false,
+                    addon: false,
+                    minimum_quantity: 1,
+                    handling_days: { min: 0, max: 0 },
+                    shipping_options: [
+                        { name: "standard", price: 0, delivery_days: { min: 2, max: 5 } },
+                        { name: "one-day", price: 599, delivery_days: { min: 1, max: 1 } },
+                    ],
+                },
+                {
+                    offer_id: "eMLzuculxk",
+                    price: 628,
+                    condition: "Used - Very Good",
+                    available: true,
+                    seller: {
+                        id: "A2L77EE7U53NWQ",
+                        name: "Amazon Warehouse",
+                        num_ratings: 218432,
+                        percent_positive: 93,
+                        first_party: false,
+                    },
+                    marketplace_fulfilled: true,
+                    prime_only: false,
+                    international: false,
+                    addon: false,
+                    minimum_quantity: 1,
+                    handling_days: { min: 0, max: 1 },
+                    shipping_options: [{ name: "standard", price: 0, delivery_days: { min: 4, max: 4 } }],
+                },
+            ],
+            timestamp: 1756425600,
+        };
 
         server
             .mockEndpoint()
@@ -432,6 +579,90 @@ describe("AgentClient", () => {
     });
 
     test("productOffers (2)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = {
+            status: "processing",
+            code: "code",
+            message: "message",
+            retailer: "retailer",
+            asin: "asin",
+            offers: [
+                {
+                    offer_id: "offer_id",
+                    price: 1,
+                    condition: "New",
+                    available: true,
+                    marketplace_fulfilled: true,
+                    prime_only: true,
+                    international: true,
+                    addon: true,
+                    minimum_quantity: 1,
+                    shipping_options: [{}],
+                },
+            ],
+            timestamp: 1,
+        };
+
+        server
+            .mockEndpoint()
+            .post("/agent/products/offers")
+            .respondWith()
+            .statusCode(200)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        const response = await client.agent.productOffers({
+            product_id: "product_id",
+            retailer: "amazon",
+        });
+        expect(response).toEqual(rawResponseBody);
+    });
+
+    test("productOffers (3)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = {
+            status: "failed",
+            code: "product_not_found",
+            message: "No product found for id B00KFP6NHO on amazon",
+            retailer: "retailer",
+            asin: "asin",
+            offers: [
+                {
+                    offer_id: "offer_id",
+                    price: 1,
+                    condition: "New",
+                    available: true,
+                    marketplace_fulfilled: true,
+                    prime_only: true,
+                    international: true,
+                    addon: true,
+                    minimum_quantity: 1,
+                    shipping_options: [{}],
+                },
+            ],
+            timestamp: 1,
+        };
+
+        server
+            .mockEndpoint()
+            .post("/agent/products/offers")
+            .respondWith()
+            .statusCode(200)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        const response = await client.agent.productOffers({
+            product_id: "product_id",
+            retailer: "amazon",
+        });
+        expect(response).toEqual(rawResponseBody);
+    });
+
+    test("productOffers (4)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 
@@ -453,7 +684,7 @@ describe("AgentClient", () => {
         }).rejects.toThrow(Zinc.PaymentRequiredError);
     });
 
-    test("productOffers (3)", async () => {
+    test("productOffers (5)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 
@@ -479,7 +710,114 @@ describe("AgentClient", () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 
-        const rawResponseBody = { status: "completed" };
+        const rawResponseBody = {
+            status: "completed",
+            code: "code",
+            message: "message",
+            retailer: "amazon",
+            product_id: "B00KFP6NHO",
+            title: "Nuby Garden Fresh Fruitsicle Frozen Pop Tray",
+            brand: "Nuby",
+            main_image: "https://m.media-amazon.com/images/I/61K0YbuLi-L.jpg",
+            images: [
+                "https://m.media-amazon.com/images/I/61K0YbuLi-L.jpg",
+                "https://m.media-amazon.com/images/I/81KtOn8ddTL.jpg",
+                "https://m.media-amazon.com/images/I/71%2BruDKMSoL.jpg",
+            ],
+            product_description:
+                "Nuby's Garden Fresh Fruitsicle Frozen Popsicle Tray is specially designed for making fresh puree popsicles at home. This set includes four fruitsicle handles and a tray to mold the pops.",
+            description: "description",
+            price: 799,
+            stars: 4.4,
+            review_count: 829,
+            num_reviews: 1,
+            feature_bullets: [
+                "Includes four freeze-and-feed popsicle molds with handles shaped for little hands",
+                "Wide popsicle-holder base catches drips as the popsicle melts",
+                "6 Months + / BPA Free",
+            ],
+            product_details: [
+                "Product Dimensions: 5.8 x 5.8 x 4 inches ; 7.8 ounces",
+                "Shipping Weight: 8.5 ounces",
+                "UPC: 048526054381",
+                "Item model number: 5438",
+            ],
+            categories: ["Home & Kitchen", "Kitchen & Dining", "Kitchen Utensils & Gadgets", "Ice Pop Molds"],
+            variant_specifics: [{ dimension: "Size", value: "1" }],
+            all_variants: [
+                { product_id: "B00KFP6NHO", variant_specifics: [{ dimension: "Size", value: "1" }] },
+                { product_id: "B00Q3H18EQ", variant_specifics: [{ dimension: "Size", value: "2" }] },
+            ],
+            epids: [
+                { type: "MPN", value: "5438" },
+                { type: "UPC", value: "048526054381" },
+                { type: "EAN", value: "0048526054381" },
+            ],
+            epids_map: { MPN: "5438", UPC: "048526054381", EAN: "0048526054381" },
+            timestamp: 1756425600,
+            url: "url",
+            available: true,
+            tags: ["tags"],
+            asin: "B00KFP6NHO",
+            original_retail_price: 899,
+            ship_price: 0,
+            question_count: 44,
+            package_dimensions: {
+                weight: { amount: 8.5, unit: "ounces" },
+                size: {
+                    width: { amount: 4, unit: "inches" },
+                    depth: { amount: 5.8, unit: "inches" },
+                    length: { amount: 5.8, unit: "inches" },
+                },
+            },
+            authors: ["authors"],
+            aplus_html: "present",
+            fresh: false,
+            pantry: false,
+            handmade: false,
+            digital: false,
+            buyapi_hint: true,
+            sku: "sku",
+            product_url: "product_url",
+            offers: [{ condition: "condition", price: 1, availability: "availability", "new": true, seller: "seller" }],
+            domain: "domain",
+            handle: "handle",
+            shopify_product_id: "shopify_product_id",
+            product_type: "product_type",
+            price_min: 1,
+            price_max: 1,
+            listing_id: "listing_id",
+            currency_code: "currency_code",
+            quantity: 1,
+            state: "state",
+            materials: ["materials"],
+            taxonomy_id: 1,
+            who_made: "who_made",
+            when_made: "when_made",
+            is_supply: true,
+            is_customizable: true,
+            listing_type: "listing_type",
+            num_favorers: 1,
+            views: 1,
+            has_variations: true,
+            shop_name: "shop_name",
+            shop_url: "shop_url",
+            shop_review_average: 1.1,
+            shop_review_count: 1,
+            shop_is_vacation: true,
+            variants: [
+                {
+                    variant_id: "variant_id",
+                    title: "title",
+                    sku: "sku",
+                    price: 1,
+                    currency_code: "currency_code",
+                    quantity: 1,
+                    available: true,
+                    properties: [{}],
+                },
+            ],
+        };
 
         server
             .mockEndpoint()
@@ -497,6 +835,552 @@ describe("AgentClient", () => {
     });
 
     test("productDetails (2)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = {
+            status: "completed",
+            code: "code",
+            message: "message",
+            retailer: "bestbuy",
+            product_id: "JJGWKYZY27",
+            title: "Sony - WH-1000XM5 Wireless Noise-Canceling Over-the-Ear Headphones - Black",
+            brand: "Sony",
+            main_image: "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6668/6668002_sd.jpg",
+            images: [
+                "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6668/6668002_sd.jpg",
+                "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6668/6668002cv11d.jpg",
+            ],
+            product_description:
+                "Industry-leading noise canceling with two processors and eight microphones, plus up to 30 hours of battery life.",
+            description: "description",
+            price: 39999,
+            stars: 4.6,
+            review_count: 1,
+            num_reviews: 3128,
+            feature_bullets: [
+                "Industry-leading noise canceling: Two processors control eight microphones for unprecedented noise cancellation.",
+                "Up to 30-hour battery life: Quick charging gives you 3 hours of playback from a 3-minute charge.",
+            ],
+            product_details: ["Wireless Connectivity: Bluetooth", "Battery Life: 30 hours", "Color: Black"],
+            categories: ["Audio", "Headphones", "All Headphones"],
+            variant_specifics: [{ dimension: "Color", value: "Black" }],
+            all_variants: [{ product_id: "product_id", variant_specifics: [{}] }],
+            epids: [
+                { type: "UPC", value: "027242923553" },
+                { type: "MPN", value: "WH1000XM5/B" },
+            ],
+            epids_map: { key: "value" },
+            timestamp: 1,
+            url: "url",
+            available: true,
+            tags: ["tags"],
+            asin: "asin",
+            original_retail_price: 1,
+            ship_price: 1,
+            question_count: 1,
+            package_dimensions: { weight: { amount: 1.1, unit: "unit" } },
+            authors: ["authors"],
+            aplus_html: "aplus_html",
+            fresh: true,
+            pantry: true,
+            handmade: true,
+            digital: true,
+            buyapi_hint: true,
+            sku: "6668002",
+            product_url:
+                "https://www.bestbuy.com/product/sony-wh-1000xm5-wireless-noise-canceling-over-the-ear-headphones-black/JJGWKYZY27",
+            offers: [
+                { condition: "New", price: 39999, availability: "InStock", "new": true, seller: "Best Buy" },
+                {
+                    condition: "Open-Box Excellent",
+                    price: 33599,
+                    availability: "InStock",
+                    "new": false,
+                    seller: "Best Buy",
+                },
+            ],
+            domain: "domain",
+            handle: "handle",
+            shopify_product_id: "shopify_product_id",
+            product_type: "product_type",
+            price_min: 1,
+            price_max: 1,
+            listing_id: "listing_id",
+            currency_code: "currency_code",
+            quantity: 1,
+            state: "state",
+            materials: ["materials"],
+            taxonomy_id: 1,
+            who_made: "who_made",
+            when_made: "when_made",
+            is_supply: true,
+            is_customizable: true,
+            listing_type: "listing_type",
+            num_favorers: 1,
+            views: 1,
+            has_variations: true,
+            shop_name: "shop_name",
+            shop_url: "shop_url",
+            shop_review_average: 1.1,
+            shop_review_count: 1,
+            shop_is_vacation: true,
+            variants: [
+                {
+                    variant_id: "variant_id",
+                    title: "title",
+                    sku: "sku",
+                    price: 1,
+                    currency_code: "currency_code",
+                    quantity: 1,
+                    available: true,
+                    properties: [{}],
+                },
+            ],
+        };
+
+        server
+            .mockEndpoint()
+            .post("/agent/products/details")
+            .respondWith()
+            .statusCode(200)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        const response = await client.agent.productDetails({
+            product_id: "product_id",
+            retailer: "amazon",
+        });
+        expect(response).toEqual(rawResponseBody);
+    });
+
+    test("productDetails (3)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = {
+            status: "completed",
+            code: "code",
+            message: "message",
+            retailer: "shopify",
+            product_id: "studio-tote-bag",
+            title: "Studio Tote Bag",
+            brand: "Yetch Studio",
+            main_image: "https://cdn.shopify.com/s/files/1/0567/8901/products/studio-tote-natural.jpg",
+            images: [
+                "https://cdn.shopify.com/s/files/1/0567/8901/products/studio-tote-natural.jpg",
+                "https://cdn.shopify.com/s/files/1/0567/8901/products/studio-tote-black.jpg",
+            ],
+            product_description: "product_description",
+            description: "<p>Heavyweight organic cotton canvas tote with an interior pocket.</p>",
+            price: 3800,
+            stars: 1.1,
+            review_count: 1,
+            num_reviews: 1,
+            feature_bullets: ["feature_bullets"],
+            product_details: ["product_details"],
+            categories: ["categories"],
+            variant_specifics: [{ dimension: "dimension", value: "value" }],
+            all_variants: [{ product_id: "product_id", variant_specifics: [{}] }],
+            epids: [{ type: "type", value: "value" }],
+            epids_map: { key: "value" },
+            timestamp: 1,
+            url: "https://yetch.studio/products/studio-tote-bag",
+            available: true,
+            tags: ["bags", "canvas", "new-arrivals"],
+            asin: "asin",
+            original_retail_price: 1,
+            ship_price: 1,
+            question_count: 1,
+            package_dimensions: { weight: { amount: 1.1, unit: "unit" } },
+            authors: ["authors"],
+            aplus_html: "aplus_html",
+            fresh: true,
+            pantry: true,
+            handmade: true,
+            digital: true,
+            buyapi_hint: true,
+            sku: "sku",
+            product_url: "product_url",
+            offers: [{ condition: "condition", price: 1, availability: "availability", "new": true, seller: "seller" }],
+            domain: "yetch.studio",
+            handle: "studio-tote-bag",
+            shopify_product_id: "7431029563462",
+            product_type: "Bags",
+            price_min: 3800,
+            price_max: 4200,
+            listing_id: "listing_id",
+            currency_code: "currency_code",
+            quantity: 1,
+            state: "state",
+            materials: ["materials"],
+            taxonomy_id: 1,
+            who_made: "who_made",
+            when_made: "when_made",
+            is_supply: true,
+            is_customizable: true,
+            listing_type: "listing_type",
+            num_favorers: 1,
+            views: 1,
+            has_variations: true,
+            shop_name: "shop_name",
+            shop_url: "shop_url",
+            shop_review_average: 1.1,
+            shop_review_count: 1,
+            shop_is_vacation: true,
+            variants: [
+                {
+                    variant_id: "42198765432109",
+                    title: "Natural",
+                    sku: "TOTE-NAT",
+                    price: 3800,
+                    currency_code: "currency_code",
+                    quantity: 1,
+                    available: true,
+                    properties: [{}],
+                },
+                {
+                    variant_id: "42198765432110",
+                    title: "Black",
+                    sku: "TOTE-BLK",
+                    price: 4200,
+                    currency_code: "currency_code",
+                    quantity: 1,
+                    available: false,
+                    properties: [{}],
+                },
+            ],
+        };
+
+        server
+            .mockEndpoint()
+            .post("/agent/products/details")
+            .respondWith()
+            .statusCode(200)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        const response = await client.agent.productDetails({
+            product_id: "product_id",
+            retailer: "amazon",
+        });
+        expect(response).toEqual(rawResponseBody);
+    });
+
+    test("productDetails (4)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = {
+            status: "completed",
+            code: "code",
+            message: "message",
+            retailer: "etsy",
+            product_id: "1234567890",
+            title: "Hand-Thrown Stoneware Mug, 12 oz",
+            brand: "brand",
+            main_image: "https://i.etsystatic.com/12345678/r/il/abcdef/1234567890/il_fullxfull.1234567890_abcd.jpg",
+            images: [
+                "https://i.etsystatic.com/12345678/r/il/abcdef/1234567890/il_fullxfull.1234567890_abcd.jpg",
+                "https://i.etsystatic.com/12345678/r/il/abcdef/1234567891/il_fullxfull.1234567891_efgh.jpg",
+            ],
+            product_description: "product_description",
+            description: "Wheel-thrown stoneware mug with a matte speckled glaze. Dishwasher and microwave safe.",
+            price: 3400,
+            stars: 1.1,
+            review_count: 1,
+            num_reviews: 1,
+            feature_bullets: ["feature_bullets"],
+            product_details: ["product_details"],
+            categories: ["categories"],
+            variant_specifics: [{ dimension: "dimension", value: "value" }],
+            all_variants: [{ product_id: "product_id", variant_specifics: [{}] }],
+            epids: [{ type: "type", value: "value" }],
+            epids_map: { key: "value" },
+            timestamp: 1,
+            url: "https://www.etsy.com/listing/1234567890/hand-thrown-stoneware-mug-12-oz",
+            available: true,
+            tags: ["ceramic mug", "stoneware", "coffee mug"],
+            asin: "asin",
+            original_retail_price: 1,
+            ship_price: 1,
+            question_count: 1,
+            package_dimensions: { weight: { amount: 1.1, unit: "unit" } },
+            authors: ["authors"],
+            aplus_html: "aplus_html",
+            fresh: true,
+            pantry: true,
+            handmade: true,
+            digital: true,
+            buyapi_hint: true,
+            sku: "sku",
+            product_url: "product_url",
+            offers: [{ condition: "condition", price: 1, availability: "availability", "new": true, seller: "seller" }],
+            domain: "domain",
+            handle: "handle",
+            shopify_product_id: "shopify_product_id",
+            product_type: "product_type",
+            price_min: 1,
+            price_max: 1,
+            listing_id: "1234567890",
+            currency_code: "USD",
+            quantity: 8,
+            state: "active",
+            materials: ["stoneware", "glaze"],
+            taxonomy_id: 1103,
+            who_made: "i_did",
+            when_made: "made_to_order",
+            is_supply: false,
+            is_customizable: true,
+            listing_type: "physical",
+            num_favorers: 412,
+            views: 9871,
+            has_variations: true,
+            shop_name: "RiverbendPottery",
+            shop_url: "https://www.etsy.com/shop/RiverbendPottery",
+            shop_review_average: 4.9,
+            shop_review_count: 263,
+            shop_is_vacation: false,
+            variants: [
+                {
+                    variant_id: "9876543210",
+                    title: "title",
+                    sku: "MUG-12-SPECKLE",
+                    price: 3400,
+                    currency_code: "USD",
+                    quantity: 5,
+                    available: true,
+                    properties: [{ name: "Glaze", value: "Speckled White" }],
+                },
+                {
+                    variant_id: "9876543211",
+                    title: "title",
+                    sku: "MUG-12-SLATE",
+                    price: 3400,
+                    currency_code: "USD",
+                    quantity: 3,
+                    available: true,
+                    properties: [{ name: "Glaze", value: "Slate Blue" }],
+                },
+            ],
+        };
+
+        server
+            .mockEndpoint()
+            .post("/agent/products/details")
+            .respondWith()
+            .statusCode(200)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        const response = await client.agent.productDetails({
+            product_id: "product_id",
+            retailer: "amazon",
+        });
+        expect(response).toEqual(rawResponseBody);
+    });
+
+    test("productDetails (5)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = {
+            status: "processing",
+            code: "code",
+            message: "message",
+            retailer: "retailer",
+            product_id: "product_id",
+            title: "title",
+            brand: "brand",
+            main_image: "main_image",
+            images: ["images"],
+            product_description: "product_description",
+            description: "description",
+            price: 1,
+            stars: 1.1,
+            review_count: 1,
+            num_reviews: 1,
+            feature_bullets: ["feature_bullets"],
+            product_details: ["product_details"],
+            categories: ["categories"],
+            variant_specifics: [{ dimension: "dimension", value: "value" }],
+            all_variants: [{ product_id: "product_id", variant_specifics: [{}] }],
+            epids: [{ type: "type", value: "value" }],
+            epids_map: { key: "value" },
+            timestamp: 1,
+            url: "url",
+            available: true,
+            tags: ["tags"],
+            asin: "asin",
+            original_retail_price: 1,
+            ship_price: 1,
+            question_count: 1,
+            package_dimensions: { weight: { amount: 1.1, unit: "unit" } },
+            authors: ["authors"],
+            aplus_html: "aplus_html",
+            fresh: true,
+            pantry: true,
+            handmade: true,
+            digital: true,
+            buyapi_hint: true,
+            sku: "sku",
+            product_url: "product_url",
+            offers: [{ condition: "condition", price: 1, availability: "availability", "new": true, seller: "seller" }],
+            domain: "domain",
+            handle: "handle",
+            shopify_product_id: "shopify_product_id",
+            product_type: "product_type",
+            price_min: 1,
+            price_max: 1,
+            listing_id: "listing_id",
+            currency_code: "currency_code",
+            quantity: 1,
+            state: "state",
+            materials: ["materials"],
+            taxonomy_id: 1,
+            who_made: "who_made",
+            when_made: "when_made",
+            is_supply: true,
+            is_customizable: true,
+            listing_type: "listing_type",
+            num_favorers: 1,
+            views: 1,
+            has_variations: true,
+            shop_name: "shop_name",
+            shop_url: "shop_url",
+            shop_review_average: 1.1,
+            shop_review_count: 1,
+            shop_is_vacation: true,
+            variants: [
+                {
+                    variant_id: "variant_id",
+                    title: "title",
+                    sku: "sku",
+                    price: 1,
+                    currency_code: "currency_code",
+                    quantity: 1,
+                    available: true,
+                    properties: [{}],
+                },
+            ],
+        };
+
+        server
+            .mockEndpoint()
+            .post("/agent/products/details")
+            .respondWith()
+            .statusCode(200)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        const response = await client.agent.productDetails({
+            product_id: "product_id",
+            retailer: "amazon",
+        });
+        expect(response).toEqual(rawResponseBody);
+    });
+
+    test("productDetails (6)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = {
+            status: "failed",
+            code: "product_not_found",
+            message: "No product found for id B00KFP6NHO on amazon",
+            retailer: "retailer",
+            product_id: "product_id",
+            title: "title",
+            brand: "brand",
+            main_image: "main_image",
+            images: ["images"],
+            product_description: "product_description",
+            description: "description",
+            price: 1,
+            stars: 1.1,
+            review_count: 1,
+            num_reviews: 1,
+            feature_bullets: ["feature_bullets"],
+            product_details: ["product_details"],
+            categories: ["categories"],
+            variant_specifics: [{ dimension: "dimension", value: "value" }],
+            all_variants: [{ product_id: "product_id", variant_specifics: [{}] }],
+            epids: [{ type: "type", value: "value" }],
+            epids_map: { key: "value" },
+            timestamp: 1,
+            url: "url",
+            available: true,
+            tags: ["tags"],
+            asin: "asin",
+            original_retail_price: 1,
+            ship_price: 1,
+            question_count: 1,
+            package_dimensions: { weight: { amount: 1.1, unit: "unit" } },
+            authors: ["authors"],
+            aplus_html: "aplus_html",
+            fresh: true,
+            pantry: true,
+            handmade: true,
+            digital: true,
+            buyapi_hint: true,
+            sku: "sku",
+            product_url: "product_url",
+            offers: [{ condition: "condition", price: 1, availability: "availability", "new": true, seller: "seller" }],
+            domain: "domain",
+            handle: "handle",
+            shopify_product_id: "shopify_product_id",
+            product_type: "product_type",
+            price_min: 1,
+            price_max: 1,
+            listing_id: "listing_id",
+            currency_code: "currency_code",
+            quantity: 1,
+            state: "state",
+            materials: ["materials"],
+            taxonomy_id: 1,
+            who_made: "who_made",
+            when_made: "when_made",
+            is_supply: true,
+            is_customizable: true,
+            listing_type: "listing_type",
+            num_favorers: 1,
+            views: 1,
+            has_variations: true,
+            shop_name: "shop_name",
+            shop_url: "shop_url",
+            shop_review_average: 1.1,
+            shop_review_count: 1,
+            shop_is_vacation: true,
+            variants: [
+                {
+                    variant_id: "variant_id",
+                    title: "title",
+                    sku: "sku",
+                    price: 1,
+                    currency_code: "currency_code",
+                    quantity: 1,
+                    available: true,
+                    properties: [{}],
+                },
+            ],
+        };
+
+        server
+            .mockEndpoint()
+            .post("/agent/products/details")
+            .respondWith()
+            .statusCode(200)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        const response = await client.agent.productDetails({
+            product_id: "product_id",
+            retailer: "amazon",
+        });
+        expect(response).toEqual(rawResponseBody);
+    });
+
+    test("productDetails (7)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 
@@ -518,7 +1402,7 @@ describe("AgentClient", () => {
         }).rejects.toThrow(Zinc.PaymentRequiredError);
     });
 
-    test("productDetails (3)", async () => {
+    test("productDetails (8)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
 

@@ -29,8 +29,12 @@ export interface OrderResponse {
     returns?: Zinc.ReturnRequestSummary[] | undefined;
     /** Stripe Connect charge details when this order was paid via Connect; null for prepaid-wallet orders. */
     connect?: (Zinc.OrderConnectInfo | null) | undefined;
+    /** Card hold details when this order was paid with payment.mode='card'; null for wallet and Connect orders. */
+    payment?: (Zinc.OrderPaymentInfo | null) | undefined;
     /** End-customer email-notification status when the order opted into the notifications add-on; null when it didn't. */
     customer_notifications?: (Zinc.CustomerNotificationStatus | null) | undefined;
+    /** `gift`/`items`/`quantity`: the mode this order asked for on each rule (all null = strict). `concessions`: every rule that actually was relaxed, with the worker's code and the item it concerned. Empty concessions means the order was fulfilled exactly as requested. */
+    fulfillment?: Zinc.OrderFulfillment | undefined;
     created_at: string;
     updated_at: string;
 }
