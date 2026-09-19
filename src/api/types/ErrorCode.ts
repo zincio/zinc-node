@@ -16,6 +16,7 @@ export const ErrorCode = {
     AccessDenied: "access_denied",
     PaymentFailed: "payment_failed",
     PaymentMethodRequired: "payment_method_required",
+    PaymentRequired: "payment_required",
     InvalidPaymentMethod: "invalid_payment_method",
     InvalidShippingAddress: "invalid_shipping_address",
     UrlUnreachable: "url_unreachable",

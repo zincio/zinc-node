@@ -1978,6 +1978,87 @@ await client.retailers.listRetailers();
 </dl>
 </details>
 
+<details><summary><code>client.retailers.<a href="/src/api/resources/retailers/client/Client.ts">checkRetailer</a>({ ...params }) -> Zinc.RetailerCheckResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Can Zinc buy from this store, and ship it to this country?
+
+No authentication. This is the question `GET /retailers` cannot answer: the
+list is the curated set, while the order path accepts most stores, so a
+caller holding an arbitrary URL has no way to find out from the list alone.
+
+`orderable` is the answer. `support` says how much we know:
+
+| tier | meaning |
+|---|---|
+| `verified` | curated, and its daily test order is passing |
+| `active` | real orders succeeded here in the last 90 days |
+| `observed` | Zinc has attempted orders here |
+| `untested` | never seen — and Zinc will still attempt it |
+| `unsupported` | Zinc refuses; `unsupported_reason` says why |
+
+Read-only: asking never adds a store to the catalog.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.retailers.checkRetailer({
+    url: "url"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.CheckRetailerRetailersCheckGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `RetailersClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 ## Usage
 <details><summary><code>client.usage.<a href="/src/api/resources/usage/client/Client.ts">getMyUsage</a>({ ...params }) -> Zinc.UserUsageResponse</code></summary>
 <dl>
@@ -2290,6 +2371,146 @@ await client.tracking.getPublicTracking({
 <dd>
 
 **requestOptions:** `TrackingClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+## Payments
+<details><summary><code>client.payments.<a href="/src/api/resources/payments/client/Client.ts">getPendingPayment</a>({ ...params }) -> Zinc.PendingPaymentResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Where a card payment stands; poll it after a 402 ``payment_required``.
+
+``requires_action`` until the buyer pays on ``pay_url``; then ``authorized``
+and, as soon as the order is created from the parked draft, ``placed`` with
+``order_id``. The poll itself does the creating when it gets there before
+the webhook, so a buyer who pays and comes straight back sees the order.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.payments.getPendingPayment({
+    payment_id: "payment_id"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.GetPendingPaymentPaymentsPaymentIdGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `PaymentsClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.payments.<a href="/src/api/resources/payments/client/Client.ts">createCheckoutSession</a>({ ...params }) -> Zinc.CheckoutSessionResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+The Stripe-hosted payment page for a pending payment.
+
+Called by pay.zinc.com when the buyer clicks through, not by the 402 itself,
+so a link nobody opens never creates a Stripe session. Idempotent per
+payment: a session already open is returned again.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.payments.createCheckoutSession({
+    payment_id: "payment_id"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.CreateCheckoutSessionPaymentsPaymentIdCheckoutSessionPostRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `PaymentsClient.RequestOptions` 
     
 </dd>
 </dl>

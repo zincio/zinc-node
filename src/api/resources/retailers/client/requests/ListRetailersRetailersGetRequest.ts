@@ -11,4 +11,6 @@ export interface ListRetailersRetailersGetRequest {
     offset?: number;
     /** Filter by name (case-insensitive partial match) */
     name?: string | null;
+    /** Pass `all` to include the long tail Zinc has ordered from but not curated (hundreds of brands). Omit for the curated set. This selects how much of the catalog to return; it is not a filter on an entry's `support` tier. */
+    include?: string | null;
 }

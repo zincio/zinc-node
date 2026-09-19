@@ -51,11 +51,12 @@ export class RetailersClient {
         request: Zinc.ListRetailersRetailersGetRequest = {},
         requestOptions?: RetailersClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.PublicRetailerListResponse>> {
-        const { limit, offset, name } = request;
+        const { limit, offset, name, include } = request;
         const _queryParams: Record<string, unknown> = {
             limit,
             offset,
             name,
+            include,
         };
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(this._options?.headers, requestOptions?.headers);
         const _response = await core.fetcher({
@@ -96,5 +97,93 @@ export class RetailersClient {
         }
 
         return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/retailers");
+    }
+
+    /**
+     * Can Zinc buy from this store, and ship it to this country?
+     *
+     * No authentication. This is the question `GET /retailers` cannot answer: the
+     * list is the curated set, while the order path accepts most stores, so a
+     * caller holding an arbitrary URL has no way to find out from the list alone.
+     *
+     * `orderable` is the answer. `support` says how much we know:
+     *
+     * | tier | meaning |
+     * |---|---|
+     * | `verified` | curated, and its daily test order is passing |
+     * | `active` | real orders succeeded here in the last 90 days |
+     * | `observed` | Zinc has attempted orders here |
+     * | `untested` | never seen — and Zinc will still attempt it |
+     * | `unsupported` | Zinc refuses; `unsupported_reason` says why |
+     *
+     * Read-only: asking never adds a store to the catalog.
+     *
+     * @param {Zinc.CheckRetailerRetailersCheckGetRequest} request
+     * @param {RetailersClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Zinc.UnprocessableEntityError}
+     * @throws {@link errors.ZincError}
+     * @throws {@link errors.ZincTimeoutError}
+     *
+     * @example
+     *     await client.retailers.checkRetailer({
+     *         url: "url"
+     *     })
+     */
+    public checkRetailer(
+        request: Zinc.CheckRetailerRetailersCheckGetRequest,
+        requestOptions?: RetailersClient.RequestOptions,
+    ): core.HttpResponsePromise<Zinc.RetailerCheckResponse> {
+        return core.HttpResponsePromise.fromPromise(this.__checkRetailer(request, requestOptions));
+    }
+
+    private async __checkRetailer(
+        request: Zinc.CheckRetailerRetailersCheckGetRequest,
+        requestOptions?: RetailersClient.RequestOptions,
+    ): Promise<core.WithRawResponse<Zinc.RetailerCheckResponse>> {
+        const { url, country } = request;
+        const _queryParams: Record<string, unknown> = {
+            url,
+            country,
+        };
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(this._options?.headers, requestOptions?.headers);
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.ZincEnvironment.Production,
+                "retailers/check",
+            ),
+            method: "GET",
+            headers: _headers,
+            queryString: core.url
+                .queryBuilder()
+                .addMany(_queryParams)
+                .mergeAdditional(requestOptions?.queryParams)
+                .build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Zinc.RetailerCheckResponse, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 422:
+                    throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.ZincError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/retailers/check");
     }
 }

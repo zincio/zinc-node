@@ -539,12 +539,15 @@ export class OrdersClient {
         request: Zinc.CreateOrderOrdersPostRequest,
         requestOptions?: OrdersClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.OrderResponse>> {
-        const { authorization, body: _body } = request;
+        const { "x-zinc-client": zincClient, authorization, body: _body } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
             this._options?.headers,
-            mergeOnlyDefinedHeaders({ authorization: authorization ?? undefined }),
+            mergeOnlyDefinedHeaders({
+                "x-zinc-client": zincClient ?? undefined,
+                authorization: authorization ?? undefined,
+            }),
             requestOptions?.headers,
         );
         const _response = await core.fetcher({

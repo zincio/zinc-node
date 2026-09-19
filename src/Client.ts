@@ -5,6 +5,7 @@ import { DeviceClient } from "./api/resources/device/client/Client.js";
 import { HealthClient } from "./api/resources/health/client/Client.js";
 import { ManagedAccountsClient } from "./api/resources/managedAccounts/client/Client.js";
 import { OrdersClient } from "./api/resources/orders/client/Client.js";
+import { PaymentsClient } from "./api/resources/payments/client/Client.js";
 import { ProductsClient } from "./api/resources/products/client/Client.js";
 import { RetailersClient } from "./api/resources/retailers/client/Client.js";
 import { ReturnsClient } from "./api/resources/returns/client/Client.js";
@@ -38,6 +39,7 @@ export class ZincClient {
     protected _wallet: WalletClient | undefined;
     protected _stats: StatsClient | undefined;
     protected _tracking: TrackingClient | undefined;
+    protected _payments: PaymentsClient | undefined;
     protected _sandbox: SandboxClient | undefined;
     protected _device: DeviceClient | undefined;
     protected _webhooks: WebhooksClient | undefined;
@@ -89,6 +91,10 @@ export class ZincClient {
 
     public get tracking(): TrackingClient {
         return (this._tracking ??= new TrackingClient(this._options));
+    }
+
+    public get payments(): PaymentsClient {
+        return (this._payments ??= new PaymentsClient(this._options));
     }
 
     public get sandbox(): SandboxClient {

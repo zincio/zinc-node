@@ -8,6 +8,8 @@ export interface RetailerCredentialsResponse {
     short_id: string;
     email: string;
     retailer: string | null;
+    /** The storefront this credential logs in to. NULL when its `retailer` slug has no catalog row — the two are kept in step automatically, so a NULL here means the slug is not (yet) a known storefront. */
+    retailer_id?: (number | null) | undefined;
     /** Whether TOTP 2FA is configured for this account. */
     has_totp?: boolean | undefined;
     /** Whether email forwarding has been verified for this account. */

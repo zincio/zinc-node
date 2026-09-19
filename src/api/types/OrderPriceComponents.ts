@@ -28,6 +28,8 @@ export interface OrderPriceComponents {
     cart_items?: (Zinc.OrderCartItem[] | null) | undefined;
     /** Order-level adjustments, each `{description, amount, category}`. Null — not `[]` — when the producer didn't supply them, which is every BizAPI-placed order today, so null-check before iterating. */
     line_items?: (Record<string, unknown>[] | null) | undefined;
+    /** False when `subtotal`/`tax`/`shipping` are placeholders rather than observed figures — an order an operator recorded by hand without itemizing the whole of what they paid. Those fields read `0` in that case, which must NOT be shown as '$0.00 tax': nothing was recorded. `total` is authoritative either way. Null on results written before this flag existed; treat null as true. */
+    breakdown_recorded?: (boolean | null) | undefined;
     /** Accepts any additional properties */
     [key: string]: any;
 }

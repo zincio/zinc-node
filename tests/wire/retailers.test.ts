@@ -20,9 +20,11 @@ describe("RetailersClient", () => {
                     supported_countries: ["supported_countries"],
                     free_shipping: true,
                     free_shipping_threshold_cents: 1,
+                    support: "support",
                 },
             ],
             total: 1,
+            coverage: { policy: "policy", summary: "summary", platforms: [{ platform: "platform", orderable: true }] },
         };
 
         server.mockEndpoint().get("/retailers").respondWith().statusCode(200).jsonBody(rawResponseBody).build();
@@ -41,6 +43,48 @@ describe("RetailersClient", () => {
 
         await expect(async () => {
             return await client.retailers.listRetailers();
+        }).rejects.toThrow(Zinc.UnprocessableEntityError);
+    });
+
+    test("checkRetailer (1)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = {
+            url: "url",
+            domain: "domain",
+            orderable: true,
+            support: "support",
+            retailer: { retailer: "retailer", brand: "brand", display_name: "display_name", country: "country" },
+            platform: "platform",
+            checkout: { guest_checkout: true, use_your_account: true },
+            ships_to: ["ships_to"],
+            evidence: { orders_placed: true, last_order_at: "2023-01-15" },
+            support_detail: "support_detail",
+            unsupported_reason: "unsupported_reason",
+            how_to_order: "how_to_order",
+        };
+
+        server.mockEndpoint().get("/retailers/check").respondWith().statusCode(200).jsonBody(rawResponseBody).build();
+
+        const response = await client.retailers.checkRetailer({
+            url: "url",
+        });
+        expect(response).toEqual(rawResponseBody);
+    });
+
+    test("checkRetailer (2)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = { key: "value" };
+
+        server.mockEndpoint().get("/retailers/check").respondWith().statusCode(422).jsonBody(rawResponseBody).build();
+
+        await expect(async () => {
+            return await client.retailers.checkRetailer({
+                url: "url",
+            });
         }).rejects.toThrow(Zinc.UnprocessableEntityError);
     });
 });

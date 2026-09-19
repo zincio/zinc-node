@@ -8,6 +8,8 @@ export * from "./managedAccounts/client/requests/index.js";
 export * as managedAccounts from "./managedAccounts/index.js";
 export * from "./orders/client/requests/index.js";
 export * as orders from "./orders/index.js";
+export * from "./payments/client/requests/index.js";
+export * as payments from "./payments/index.js";
 export * from "./products/client/requests/index.js";
 export * as products from "./products/index.js";
 export * from "./products/types/index.js";

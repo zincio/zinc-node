@@ -8,4 +8,6 @@ import type * as Zinc from "../index.js";
 export interface PublicRetailerListResponse {
     retailers: Zinc.PublicRetailer[];
     total: number;
+    /** States that the list is the curated set, not the limit of what Zinc can buy from. Additive; existing fields are unchanged. */
+    coverage?: (Zinc.CoverageInfo | null) | undefined;
 }

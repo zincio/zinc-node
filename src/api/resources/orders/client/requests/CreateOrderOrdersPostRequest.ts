@@ -22,6 +22,8 @@ import type * as Zinc from "../../../../index.js";
  *     }
  */
 export interface CreateOrderOrdersPostRequest {
+    /** Which assistant the buyer is using (claude, chatgpt, codex, …). Only used when the order needs a payment page, so it can send the buyer back afterwards. */
+    "x-zinc-client"?: string | null;
     authorization?: string | null;
     body: Zinc.OrderCreate;
 }

@@ -25,4 +25,6 @@ export interface PublicRetailer {
     free_shipping?: boolean | undefined;
     /** Order subtotal (cents) at/above which shipping is free; null means no threshold. */
     free_shipping_threshold_cents?: (number | null) | undefined;
+    /** How well Zinc covers this brand: verified / active / observed. Never `unsupported` — a storefront Zinc refuses is not listed at all — so every entry here is orderable, and so are most stores that are not listed (see `coverage` and GET /retailers/check). Additive; the other fields are unchanged. */
+    support?: (string | null) | undefined;
 }

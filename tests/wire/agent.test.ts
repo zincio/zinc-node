@@ -70,6 +70,7 @@ describe("AgentClient", () => {
                     payment_currency: "payment_currency",
                     cart_items: [{}],
                     line_items: [{ key: "value" }],
+                    breakdown_recorded: true,
                 },
                 estimated_delivery: "estimated_delivery",
                 merchant_order_ids: [{ key: "value" }],
