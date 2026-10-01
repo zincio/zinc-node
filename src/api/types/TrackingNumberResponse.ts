@@ -24,5 +24,17 @@ export interface TrackingNumberResponse {
     estimated_delivery_date?: (string | null) | undefined;
     /** Carrier scan events, most recent first. Empty unless the checkpoint timeline was requested. */
     checkpoints?: Zinc.TrackingCheckpointResponse[] | undefined;
+    /** Ids of the `items[]` this package carries, best effort. Null when unknown (never an empty list). Populated when the order has one item, or once a single-package order is delivered; see `item_mapping` for how much to trust it. */
+    order_item_ids?: (string[] | null) | undefined;
+    /** Confidence of `order_item_ids`: `exact` means the package cannot carry anything else; `inferred` means at least one entry is a best-effort guess. Null when `order_item_ids` is null. */
+    item_mapping?: (TrackingNumberResponse.ItemMapping | null) | undefined;
     created_at: string;
+}
+
+export namespace TrackingNumberResponse {
+    export const ItemMapping = {
+        Exact: "exact",
+        Inferred: "inferred",
+    } as const;
+    export type ItemMapping = (typeof ItemMapping)[keyof typeof ItemMapping];
 }

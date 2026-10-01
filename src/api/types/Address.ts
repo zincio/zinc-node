@@ -12,7 +12,9 @@
 export interface Address {
     first_name: string;
     last_name: string;
+    /** Street address. At most 60 characters — retailers reject a longer line outright rather than truncating it. */
     address_line1: string;
+    /** Apartment, suite, unit, etc. At most 60 characters — retailers reject a longer line outright rather than truncating it. */
     address_line2?: (string | null) | undefined;
     city: string;
     state?: (string | null) | undefined;

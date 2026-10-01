@@ -20,7 +20,7 @@ export interface OrderPriceComponents {
     fees?: (number | null) | undefined;
     /** Order total in `currency` (subtotal + tax + shipping + fees − discount). */
     total?: (number | null) | undefined;
-    /** `total` converted to the currency actually charged. */
+    /** `total` converted to `payment_currency`, the currency actually charged. On an order billed in USD from a non-USD `currency`, this is the USD amount charged, including the FX markup; `total` stays in the retailer's currency. Equal to `total` when no conversion was charged. */
     converted_payment_total?: (number | null) | undefined;
     currency?: (string | null) | undefined;
     payment_currency?: (string | null) | undefined;

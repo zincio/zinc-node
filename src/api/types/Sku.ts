@@ -13,4 +13,6 @@ export interface Sku {
     stars?: (number | null) | undefined;
     num_reviews?: (number | null) | undefined;
     available?: (boolean | null) | undefined;
+    /** True when the retailer listing advertises free shipping; null when unknown (never false — providers only flag the free case). */
+    free_shipping?: (boolean | null) | undefined;
 }

@@ -163,11 +163,14 @@ export class AgentClient {
         request: Zinc.AgentSearchRequest,
         requestOptions?: AgentClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.SearchResponse>> {
-        const { q, min_price: minPrice, max_price: maxPrice } = request;
+        const { q, min_price: minPrice, max_price: maxPrice, retailer, sort, limit } = request;
         const _queryParams: Record<string, unknown> = {
             q,
             min_price: minPrice,
             max_price: maxPrice,
+            retailer: Array.isArray(retailer) ? retailer.map((item) => item) : retailer != null ? retailer : undefined,
+            sort: sort != null ? sort : undefined,
+            limit,
         };
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(this._options?.headers, requestOptions?.headers);
         const _response = await core.fetcher({

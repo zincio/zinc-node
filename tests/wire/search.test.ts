@@ -23,6 +23,7 @@ describe("SearchClient", () => {
                     stars: 1.1,
                     num_reviews: 1,
                     available: true,
+                    free_shipping: true,
                 },
             ],
             excluded_by_price: 1,

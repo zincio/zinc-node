@@ -13,8 +13,10 @@ import type * as Zinc from "../index.js";
 export interface ErrorDetails {
     code: string;
     message: string;
+    url?: (string | null) | undefined;
     address_validation_reasons?: string[] | undefined;
     field_errors?: Zinc.FieldError[] | undefined;
+    line_rejections?: Zinc.LineRejection[] | undefined;
     /** Accepts any additional properties */
     [key: string]: any;
 }

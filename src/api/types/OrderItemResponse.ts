@@ -18,6 +18,8 @@ export interface OrderItemResponse {
     status: Zinc.OrderItemStatus;
     cancellation_reason?: (string | null) | undefined;
     error_type?: (string | null) | undefined;
+    /** Ids of the `tracking_numbers[]` known to carry this item, best effort. Null when unknown (never an empty list). The reverse of `tracking_numbers[].order_item_ids`. */
+    tracking_number_ids?: (string[] | null) | undefined;
     created_at: string;
     updated_at: string;
 }

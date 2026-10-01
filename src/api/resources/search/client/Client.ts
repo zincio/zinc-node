@@ -4,6 +4,7 @@ import type { BaseClientOptions, BaseRequestOptions } from "../../../../BaseClie
 import { type NormalizedClientOptionsWithAuth, normalizeClientOptionsWithAuth } from "../../../../BaseClient.js";
 import { mergeHeaders, mergeOnlyDefinedHeaders } from "../../../../core/headers.js";
 import * as core from "../../../../core/index.js";
+import { toJson } from "../../../../core/json.js";
 import * as environments from "../../../../environments.js";
 import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
 import * as errors from "../../../../errors/index.js";
@@ -51,11 +52,14 @@ export class SearchClient {
         request: Zinc.SearchSearchGetRequest,
         requestOptions?: SearchClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.SearchResponse>> {
-        const { q, min_price: minPrice, max_price: maxPrice, authorization } = request;
+        const { q, min_price: minPrice, max_price: maxPrice, retailer, sort, limit, authorization } = request;
         const _queryParams: Record<string, unknown> = {
             q,
             min_price: minPrice,
             max_price: maxPrice,
+            retailer: retailer !== undefined ? toJson(retailer) : undefined,
+            sort: sort != null ? sort : undefined,
+            limit,
         };
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
