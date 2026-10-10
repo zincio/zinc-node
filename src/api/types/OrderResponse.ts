@@ -29,7 +29,7 @@ export interface OrderResponse {
     returns?: Zinc.ReturnRequestSummary[] | undefined;
     /** Stripe Connect charge details when this order was paid via Connect; null for prepaid-wallet orders. */
     connect?: (Zinc.OrderConnectInfo | null) | undefined;
-    /** Card hold details when this order was paid with payment.mode='card'; null for wallet and Connect orders. */
+    /** Card hold details when this order was paid by card outside the wallet and Connect; null for wallet and Connect orders. */
     payment?: (Zinc.OrderPaymentInfo | null) | undefined;
     /** End-customer email-notification status when the order opted into the notifications add-on; null when it didn't. */
     customer_notifications?: (Zinc.CustomerNotificationStatus | null) | undefined;

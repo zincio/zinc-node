@@ -19,6 +19,11 @@ import type * as Zinc from "../index.js";
  * member (``prefer``, ``nearest``); a per-concern knob is that concern's value
  * widening from a bare mode into an object (``items: {mode: "best_effort",
  * min_items: 2}``) — never a new top-level order field.
+ *
+ * The one exception to "only loosens" is ``excluded_merchants``: a per-order
+ * seller blocklist, here rather than top-level because it is rare and only
+ * some placement paths can honour it (BizAPI today; ignored elsewhere). It is
+ * not a ``FulfillmentConcern`` and never produces a concession.
  */
 export interface FulfillmentPreferences {
     /** `best_effort`: if the retailer offers no free gift option, place a normal order instead of failing with `gift_option_unavailable`. Requires `is_gift: true`. Omit to keep the gift requirement strict. */
@@ -27,4 +32,6 @@ export interface FulfillmentPreferences {
     items?: (Zinc.FulfillmentMode | null) | undefined;
     /** `best_effort`: if the retailer caps an item below the requested quantity, buy the cap instead of failing with `quantity_limit_exceeded`. Omit to require the full quantity. */
     quantity?: (Zinc.FulfillmentMode | null) | undefined;
+    /** Merchants this order must never be bought from: a display name as shown on the retailer's storefront (matched ignoring case and spacing) or an Amazon Business `amzn1.` merchant id. At most 20 entries. Added to any blocklist already on your account; it can only bar more merchants, never allow a barred one. Currently applied to Amazon Business orders only and ignored elsewhere. */
+    excluded_merchants?: (string[] | null) | undefined;
 }

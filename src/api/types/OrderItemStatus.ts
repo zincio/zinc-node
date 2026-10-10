@@ -5,6 +5,7 @@ export const OrderItemStatus = {
     Processing: "processing",
     Ordered: "ordered",
     Shipped: "shipped",
+    AvailableForPickup: "available_for_pickup",
     Delivered: "delivered",
     Cancelled: "cancelled",
     Failed: "failed",

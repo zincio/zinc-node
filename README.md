@@ -116,20 +116,10 @@ import { ZincClient } from "zinc";
 
 const client = new ZincClient({ apiKey: "YOUR_API_KEY" });
 await client.orders.createOrder({
-    body: {
-        products: [{
-                url: "https://www.amazon.com/dp/B07JGBW826"
-            }],
-        shipping_address: {
-            first_name: "first_name",
-            last_name: "last_name",
-            address_line1: "address_line1",
-            city: "city",
-            postal_code: "postal_code",
-            phone_number: "phone_number"
-        },
-        max_price: 1
-    }
+    products: [{
+            url: "https://www.amazon.com/dp/B07JGBW826"
+        }],
+    max_price: 1
 });
 ```
 

@@ -417,20 +417,10 @@ Posts an order to a queue for processing
 
 ```typescript
 await client.orders.createOrder({
-    body: {
-        products: [{
-                url: "https://www.amazon.com/dp/B07JGBW826"
-            }],
-        shipping_address: {
-            first_name: "first_name",
-            last_name: "last_name",
-            address_line1: "address_line1",
-            city: "city",
-            postal_code: "postal_code",
-            phone_number: "phone_number"
-        },
-        max_price: 1
-    }
+    products: [{
+            url: "https://www.amazon.com/dp/B07JGBW826"
+        }],
+    max_price: 1
 });
 
 ```
@@ -447,7 +437,7 @@ await client.orders.createOrder({
 <dl>
 <dd>
 
-**request:** `Zinc.CreateOrderOrdersPostRequest` 
+**request:** `Zinc.CheckoutOrderCreate` 
     
 </dd>
 </dl>
@@ -815,9 +805,11 @@ availability are Best Buy's own; there are simply fewer items per page. Page
 through with `next_page` to collect more — `next_page` reflects whether Best
 Buy has further results, not how many came back in this response.
 
-**Shopify stores are their own retailer**: pass the store's domain as
-`retailer` (e.g. `retailer=yetch.studio`; any Shopify-powered storefront
-works). Results are the store's own top matches (~10) and there is no
+**Shopify stores are their own retailer**: pass the store's Zinc retailer
+slug as `retailer` (e.g. `retailer=yetch`; its domain, `yetch.studio`, also
+works). The store must be in Zinc's catalog: an uncatalogued store is
+rejected with a 422, and `GET /retailers/check?url=...` returns a
+catalogued store's slug. Results are the store's own top matches (~10) and there is no
 pagination, so `next_page` is always null and `page` must be omitted or 1.
 `product_id` is the store-scoped product handle to pass to the details
 endpoint with the same `retailer`.
@@ -985,11 +977,12 @@ bsin here. The response repeats the SKU as `sku` for cross-referencing.
 Unlike `/search`, a Best Buy detail response is complete: detail pages are
 fully server-rendered, so nothing is withheld for client-side loading.
 
-**Shopify is addressed by (store, handle)**: pass the store's domain as
-`retailer` (e.g. `retailer=yetch.studio`) and the product handle — the slug
-in `/products/{handle}`, returned as `product_id` by search — as the path
-parameter. The response includes per-variant price and availability.
-`async` is not supported for Shopify stores.
+**Shopify is addressed by (store, handle)**: pass the store's retailer slug
+as `retailer` (e.g. `retailer=yetch`) and the product handle — the slug
+in `/products/{handle}`, returned as `product_id` by search — as
+`product_id`. The response includes per-variant price and availability,
+`retailer` (the store's slug) and `platform: "shopify"`. `async` is not
+supported for Shopify stores.
 
 **Etsy is addressed by the numeric listing id** (returned as `product_id` by
 search). `price` is in minor units of `currency_code`, not converted to USD.
@@ -1209,6 +1202,13 @@ await client.managedAccounts.listRetailerCredentials();
 <dd>
 
 Create new retailer credentials for the current user.
+
+Saving an account does not, on its own, change how orders are placed: an
+order runs on this account only when it passes the returned `short_id` as
+`retailer_credentials_id`. Orders that do are paid for by the payment
+method saved on the account and charged the API fee only; every other
+order runs on a Zinc account and draws the item cost from the wallet.
+
 If is_global=True (admin only), creates global credentials owned by the system user.
 </dd>
 </dl>
@@ -1438,20 +1438,18 @@ whose retry body no longer matches the challenge).
 
 ```typescript
 await client.agent.createMppOrder({
-    body: {
-        products: [{
-                url: "https://www.amazon.com/dp/B07JGBW826"
-            }],
-        shipping_address: {
-            first_name: "first_name",
-            last_name: "last_name",
-            address_line1: "address_line1",
-            city: "city",
-            postal_code: "postal_code",
-            phone_number: "phone_number"
-        },
-        max_price: 1
-    }
+    products: [{
+            url: "https://www.amazon.com/dp/B07JGBW826"
+        }],
+    shipping_address: {
+        first_name: "first_name",
+        last_name: "last_name",
+        address_line1: "address_line1",
+        city: "city",
+        postal_code: "postal_code",
+        phone_number: "phone_number"
+    },
+    max_price: 1
 });
 
 ```
@@ -1468,7 +1466,7 @@ await client.agent.createMppOrder({
 <dl>
 <dd>
 
-**request:** `Zinc.CreateMppOrderAgentOrdersPostRequest` 
+**request:** `Zinc.OrderCreate` 
     
 </dd>
 </dl>
@@ -1566,7 +1564,39 @@ await client.agent.search({
 <dl>
 <dd>
 
-Per-retailer product search for agents (amazon | walmart).
+Per-retailer product search for agents.
+
+**Best Buy returns a partial page.** Best Buy server-renders only about 4 of
+the ~24 products on a search page and loads the rest in the browser, so each
+page yields roughly 4 results rather than a full page. Ranking, pricing and
+availability are Best Buy's own; there are simply fewer items per page. Page
+through with `next_page` to collect more — `next_page` reflects whether Best
+Buy has further results, not how many came back in this response.
+
+**Shopify stores are their own retailer**: pass the store's Zinc retailer
+slug as `retailer` (e.g. `retailer=yetch`; its domain, `yetch.studio`, also
+works). The store must be in Zinc's catalog: an uncatalogued store is
+rejected with a 422, and `GET /retailers/check?url=...` returns a
+catalogued store's slug. Results are the store's own top matches (~10) and there is no
+pagination, so `next_page` is always null and `page` must be omitted or 1.
+`product_id` is the store-scoped product handle to pass to the details
+endpoint with the same `retailer`.
+
+**Etsy search covers US shops, priced in USD.** Etsy sellers price in their
+own currency and a single page routinely mixes several, which makes `price`
+incomparable across a result set — so search is narrowed to US-located
+shops and any remaining non-USD listing is dropped. `currency_code` is set
+on every result and is always `USD` here, and prices are never converted,
+so the number is what the seller charges. Because the currency check runs
+after Etsy paginates, **a page can come back short while more results still
+exist** — page on with `next_page`. (Details is neither narrowed nor
+filtered: it returns any listing, in its own currency.)
+
+Etsy results carry no `stars`/`num_reviews` — Etsy publishes a rating for
+the *shop*, not the listing, and reporting a seller's rating as the
+product's would be misleading; `brand` carries the shop name, and the
+details endpoint reports the shop's rating explicitly. `product_id` is the
+numeric listing id.
 </dd>
 </dl>
 </dd>
@@ -1583,7 +1613,7 @@ Per-retailer product search for agents (amazon | walmart).
 ```typescript
 await client.agent.productSearch({
     query: "query",
-    retailer: "amazon"
+    retailer: "retailer"
 });
 
 ```
@@ -1633,6 +1663,9 @@ await client.agent.productSearch({
 <dd>
 
 Offers/pricing for a specific product on a retailer.
+
+Not available for Shopify stores: a storefront lists one seller (itself),
+so per-variant price and availability live on the details endpoint instead.
 </dd>
 </dl>
 </dd>
@@ -1649,7 +1682,7 @@ Offers/pricing for a specific product on a retailer.
 ```typescript
 await client.agent.productOffers({
     product_id: "product_id",
-    retailer: "amazon"
+    retailer: "retailer"
 });
 
 ```
@@ -1699,6 +1732,39 @@ await client.agent.productOffers({
 <dd>
 
 Full product details for a specific product on a retailer.
+
+**Best Buy is addressed by `bsin`**, not by the numeric SKU — the bsin is the
+trailing id in a Best Buy product URL (`/product/{slug}/{bsin}`). Search
+results return the SKU as `product_id` and also carry the bsin, so pass the
+bsin here. The response repeats the SKU as `sku` for cross-referencing.
+
+Unlike `/search`, a Best Buy detail response is complete: detail pages are
+fully server-rendered, so nothing is withheld for client-side loading.
+
+**Shopify is addressed by (store, handle)**: pass the store's retailer slug
+as `retailer` (e.g. `retailer=yetch`) and the product handle — the slug
+in `/products/{handle}`, returned as `product_id` by search — as
+`product_id`. The response includes per-variant price and availability,
+`retailer` (the store's slug) and `platform: "shopify"`. `async` is not
+supported for Shopify stores.
+
+**Etsy is addressed by the numeric listing id** (returned as `product_id` by
+search). `price` is in minor units of `currency_code`, not converted to USD.
+
+Etsy ratings are the **shop's**, reported as `shop_review_average` /
+`shop_review_count`, and both cover only the **past year** — an established
+shop with no recent sales reports 0, and an unrated shop reports a null
+average rather than 0.0 stars. `stars` and `num_reviews` are deliberately
+not set: they mean a product's rating everywhere else in this API, and a
+seller's rating is a different claim.
+
+`listing_type` is `physical`, `download` or `both` — a download has nothing
+to ship. `available` accounts for the shop being on vacation as well as
+stock, so it can be false on an in-stock active listing; `shop_is_vacation`
+says which it was. `variants` is populated only when Etsy exposes a
+listing's inventory matrix — check `has_variations` to tell "no variants"
+from "variants not visible". `taxonomy_id` is Etsy's raw category id; there
+is no category name yet. `async` is not supported for Etsy.
 </dd>
 </dl>
 </dd>
@@ -1715,7 +1781,7 @@ Full product details for a specific product on a retailer.
 ```typescript
 await client.agent.productDetails({
     product_id: "product_id",
-    retailer: "amazon"
+    retailer: "retailer"
 });
 
 ```
@@ -2371,146 +2437,6 @@ await client.tracking.getPublicTracking({
 <dd>
 
 **requestOptions:** `TrackingClient.RequestOptions` 
-    
-</dd>
-</dl>
-</dd>
-</dl>
-
-
-</dd>
-</dl>
-</details>
-
-## Payments
-<details><summary><code>client.payments.<a href="/src/api/resources/payments/client/Client.ts">getPendingPayment</a>({ ...params }) -> Zinc.PendingPaymentResponse</code></summary>
-<dl>
-<dd>
-
-#### 📝 Description
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-Where a card payment stands; poll it after a 402 ``payment_required``.
-
-``requires_action`` until the buyer pays on ``pay_url``; then ``authorized``
-and, as soon as the order is created from the parked draft, ``placed`` with
-``order_id``. The poll itself does the creating when it gets there before
-the webhook, so a buyer who pays and comes straight back sees the order.
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### 🔌 Usage
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-```typescript
-await client.payments.getPendingPayment({
-    payment_id: "payment_id"
-});
-
-```
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### ⚙️ Parameters
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-**request:** `Zinc.GetPendingPaymentPaymentsPaymentIdGetRequest` 
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**requestOptions:** `PaymentsClient.RequestOptions` 
-    
-</dd>
-</dl>
-</dd>
-</dl>
-
-
-</dd>
-</dl>
-</details>
-
-<details><summary><code>client.payments.<a href="/src/api/resources/payments/client/Client.ts">createCheckoutSession</a>({ ...params }) -> Zinc.CheckoutSessionResponse</code></summary>
-<dl>
-<dd>
-
-#### 📝 Description
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-The Stripe-hosted payment page for a pending payment.
-
-Called by pay.zinc.com when the buyer clicks through, not by the 402 itself,
-so a link nobody opens never creates a Stripe session. Idempotent per
-payment: a session already open is returned again.
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### 🔌 Usage
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-```typescript
-await client.payments.createCheckoutSession({
-    payment_id: "payment_id"
-});
-
-```
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### ⚙️ Parameters
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-**request:** `Zinc.CreateCheckoutSessionPaymentsPaymentIdCheckoutSessionPostRequest` 
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**requestOptions:** `PaymentsClient.RequestOptions` 
     
 </dd>
 </dl>

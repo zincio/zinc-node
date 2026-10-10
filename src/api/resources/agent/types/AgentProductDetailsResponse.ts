@@ -10,8 +10,10 @@ export interface AgentProductDetailsResponse {
     code?: string | undefined;
     /** Only on `status: failed`. Human-readable explanation. */
     message?: string | undefined;
-    /** Retailer that served the payload: `amazon`, `walmart`, `bestbuy`, `etsy`, or `shopify` (with the store's hostname in `domain`). */
+    /** Zinc retailer slug that served the payload, the value to pass back as `retailer`: `amazon`, `amazon-uk`, `walmart`, `bestbuy`, `etsy`, or a Shopify store's slug (e.g. `yetch`, with `platform: "shopify"` and the store's hostname in `domain`). */
     retailer?: string | undefined;
+    /** Shopify only. The commerce platform the store runs on: `shopify`. */
+    platform?: string | undefined;
     /** Identifier you passed in: ASIN (Amazon), item id (Walmart), bsin (Best Buy), product handle (Shopify), or listing id (Etsy). */
     product_id?: string | undefined;
     /** Product title. */

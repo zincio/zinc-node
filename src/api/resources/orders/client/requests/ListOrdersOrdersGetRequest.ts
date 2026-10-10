@@ -15,6 +15,8 @@ export interface ListOrdersOrdersGetRequest {
     search?: string | null;
     /** Filter by the retailer's own order number (e.g. an Amazon `113-…` ID), matched exactly against any of the order's order-placing jobs. Exact, not partial — dashes in the term are matched both as typed and stripped. */
     merchant_order_id?: string | null;
+    /** Filter by the shipping recipient's name, matched as a case-insensitive substring of `first_name last_name`. */
+    shipping_name?: string | null;
     /** Filter by order status */
     status_filter?: string | null;
     /** Filter to orders having at least one tracking number with this status */

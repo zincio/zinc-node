@@ -17,6 +17,7 @@ export namespace OrderMilestone {
         OrderPlaced: "order_placed",
         TrackingAcquired: "tracking_acquired",
         Shipped: "shipped",
+        AvailableForPickup: "available_for_pickup",
         Delivered: "delivered",
         Undeliverable: "undeliverable",
         OrderFailed: "order_failed",

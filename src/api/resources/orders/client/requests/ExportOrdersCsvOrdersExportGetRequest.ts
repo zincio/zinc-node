@@ -13,6 +13,8 @@ export interface ExportOrdersCsvOrdersExportGetRequest {
     status_filter?: string | null;
     /** Filter by the retailer's own order number (exact match) */
     merchant_order_id?: string | null;
+    /** Shipping recipient's name (case-insensitive partial match) */
+    shipping_name?: string | null;
     /** Filter to orders having at least one tracking number with this status */
     tracking_status?: string | null;
     /** Only orders with (true) or without (false) tracking */

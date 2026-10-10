@@ -41,7 +41,7 @@ export class AgentClient {
      * to refund the settlement (the MPP layer cannot verify or reverse a payment
      * whose retry body no longer matches the challenge).
      *
-     * @param {Zinc.CreateMppOrderAgentOrdersPostRequest} request
+     * @param {Zinc.OrderCreate} request
      * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Zinc.PaymentRequiredError}
@@ -52,34 +52,32 @@ export class AgentClient {
      *
      * @example
      *     await client.agent.createMppOrder({
-     *         body: {
-     *             products: [{
-     *                     url: "https://www.amazon.com/dp/B07JGBW826"
-     *                 }],
-     *             shipping_address: {
-     *                 first_name: "first_name",
-     *                 last_name: "last_name",
-     *                 address_line1: "address_line1",
-     *                 city: "city",
-     *                 postal_code: "postal_code",
-     *                 phone_number: "phone_number"
-     *             },
-     *             max_price: 1
-     *         }
+     *         products: [{
+     *                 url: "https://www.amazon.com/dp/B07JGBW826"
+     *             }],
+     *         shipping_address: {
+     *             first_name: "first_name",
+     *             last_name: "last_name",
+     *             address_line1: "address_line1",
+     *             city: "city",
+     *             postal_code: "postal_code",
+     *             phone_number: "phone_number"
+     *         },
+     *         max_price: 1
      *     })
      */
     public createMppOrder(
-        request: Zinc.CreateMppOrderAgentOrdersPostRequest,
+        request: Zinc.OrderCreate,
         requestOptions?: AgentClient.RequestOptions,
     ): core.HttpResponsePromise<Zinc.OrderResponse> {
         return core.HttpResponsePromise.fromPromise(this.__createMppOrder(request, requestOptions));
     }
 
     private async __createMppOrder(
-        request: Zinc.CreateMppOrderAgentOrdersPostRequest,
+        request: Zinc.OrderCreate,
         requestOptions?: AgentClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.OrderResponse>> {
-        const { method, authorization, body: _body } = request;
+        const { method, authorization, ..._body } = request;
         const _queryParams: Record<string, unknown> = {
             method,
         };
@@ -216,7 +214,39 @@ export class AgentClient {
     }
 
     /**
-     * Per-retailer product search for agents (amazon | walmart).
+     * Per-retailer product search for agents.
+     *
+     * **Best Buy returns a partial page.** Best Buy server-renders only about 4 of
+     * the ~24 products on a search page and loads the rest in the browser, so each
+     * page yields roughly 4 results rather than a full page. Ranking, pricing and
+     * availability are Best Buy's own; there are simply fewer items per page. Page
+     * through with `next_page` to collect more — `next_page` reflects whether Best
+     * Buy has further results, not how many came back in this response.
+     *
+     * **Shopify stores are their own retailer**: pass the store's Zinc retailer
+     * slug as `retailer` (e.g. `retailer=yetch`; its domain, `yetch.studio`, also
+     * works). The store must be in Zinc's catalog: an uncatalogued store is
+     * rejected with a 422, and `GET /retailers/check?url=...` returns a
+     * catalogued store's slug. Results are the store's own top matches (~10) and there is no
+     * pagination, so `next_page` is always null and `page` must be omitted or 1.
+     * `product_id` is the store-scoped product handle to pass to the details
+     * endpoint with the same `retailer`.
+     *
+     * **Etsy search covers US shops, priced in USD.** Etsy sellers price in their
+     * own currency and a single page routinely mixes several, which makes `price`
+     * incomparable across a result set — so search is narrowed to US-located
+     * shops and any remaining non-USD listing is dropped. `currency_code` is set
+     * on every result and is always `USD` here, and prices are never converted,
+     * so the number is what the seller charges. Because the currency check runs
+     * after Etsy paginates, **a page can come back short while more results still
+     * exist** — page on with `next_page`. (Details is neither narrowed nor
+     * filtered: it returns any listing, in its own currency.)
+     *
+     * Etsy results carry no `stars`/`num_reviews` — Etsy publishes a rating for
+     * the *shop*, not the listing, and reporting a seller's rating as the
+     * product's would be misleading; `brand` carries the shop name, and the
+     * details endpoint reports the shop's rating explicitly. `product_id` is the
+     * numeric listing id.
      *
      * @param {Zinc.AgentProductSearchRequest} request
      * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -229,7 +259,7 @@ export class AgentClient {
      * @example
      *     await client.agent.productSearch({
      *         query: "query",
-     *         retailer: "amazon"
+     *         retailer: "retailer"
      *     })
      */
     public productSearch(
@@ -296,6 +326,9 @@ export class AgentClient {
     /**
      * Offers/pricing for a specific product on a retailer.
      *
+     * Not available for Shopify stores: a storefront lists one seller (itself),
+     * so per-variant price and availability live on the details endpoint instead.
+     *
      * @param {Zinc.AgentProductOffersRequest} request
      * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -307,7 +340,7 @@ export class AgentClient {
      * @example
      *     await client.agent.productOffers({
      *         product_id: "product_id",
-     *         retailer: "amazon"
+     *         retailer: "retailer"
      *     })
      */
     public productOffers(
@@ -375,6 +408,39 @@ export class AgentClient {
     /**
      * Full product details for a specific product on a retailer.
      *
+     * **Best Buy is addressed by `bsin`**, not by the numeric SKU — the bsin is the
+     * trailing id in a Best Buy product URL (`/product/{slug}/{bsin}`). Search
+     * results return the SKU as `product_id` and also carry the bsin, so pass the
+     * bsin here. The response repeats the SKU as `sku` for cross-referencing.
+     *
+     * Unlike `/search`, a Best Buy detail response is complete: detail pages are
+     * fully server-rendered, so nothing is withheld for client-side loading.
+     *
+     * **Shopify is addressed by (store, handle)**: pass the store's retailer slug
+     * as `retailer` (e.g. `retailer=yetch`) and the product handle — the slug
+     * in `/products/{handle}`, returned as `product_id` by search — as
+     * `product_id`. The response includes per-variant price and availability,
+     * `retailer` (the store's slug) and `platform: "shopify"`. `async` is not
+     * supported for Shopify stores.
+     *
+     * **Etsy is addressed by the numeric listing id** (returned as `product_id` by
+     * search). `price` is in minor units of `currency_code`, not converted to USD.
+     *
+     * Etsy ratings are the **shop's**, reported as `shop_review_average` /
+     * `shop_review_count`, and both cover only the **past year** — an established
+     * shop with no recent sales reports 0, and an unrated shop reports a null
+     * average rather than 0.0 stars. `stars` and `num_reviews` are deliberately
+     * not set: they mean a product's rating everywhere else in this API, and a
+     * seller's rating is a different claim.
+     *
+     * `listing_type` is `physical`, `download` or `both` — a download has nothing
+     * to ship. `available` accounts for the shop being on vacation as well as
+     * stock, so it can be false on an in-stock active listing; `shop_is_vacation`
+     * says which it was. `variants` is populated only when Etsy exposes a
+     * listing's inventory matrix — check `has_variations` to tell "no variants"
+     * from "variants not visible". `taxonomy_id` is Etsy's raw category id; there
+     * is no category name yet. `async` is not supported for Etsy.
+     *
      * @param {Zinc.AgentProductDetailsRequest} request
      * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -386,7 +452,7 @@ export class AgentClient {
      * @example
      *     await client.agent.productDetails({
      *         product_id: "product_id",
-     *         retailer: "amazon"
+     *         retailer: "retailer"
      *     })
      */
     public productDetails(

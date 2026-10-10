@@ -10,7 +10,7 @@ export interface AgentProductOffersResponse {
     code?: string | undefined;
     /** Only on `status: failed`. Human-readable explanation. */
     message?: string | undefined;
-    /** Retailer that served the offers, e.g. `amazon`. */
+    /** Zinc retailer slug that served the offers, e.g. `amazon`. */
     retailer?: string | undefined;
     /** Amazon only. The product's ASIN. */
     asin?: string | undefined;

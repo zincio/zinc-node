@@ -10,6 +10,8 @@ export interface ReturnRequestSummary {
     resolution_notes?: (string | null) | undefined;
     items?: Zinc.ReturnRequestItem[] | undefined;
     label_urls?: string[] | undefined;
+    /** Total wallet credit issued for this return, in cents. 0 until a credit is issued (and on returns resolved without one). Credits are append-only, so this is the running total across every credit and reversal on the return, not the last one. */
+    credited_amount?: number | undefined;
     created_at: string;
     updated_at: string;
 }

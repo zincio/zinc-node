@@ -5,13 +5,7 @@
  *
  * Matching against ``condition_in`` / ``condition_not_in`` is exact and
  * case-sensitive against these *values*. The vocabulary matches the Zinc v1
- * API's ``seller_selection_criteria`` condition strings. The Sonic worker's
- * CANONICAL_CONDITIONS (``src/agent/schemas.py``) must use the same strings,
- * since they ride through the job payload unchanged.
- *
- * The member *name* is the corresponding Amazon BizAPI offer condition code
- * (see ``CONDITION_MAP`` in ``bizapi_service``), so the canonical→BizAPI
- * mapping is derived from the enum rather than maintained as a separate table.
+ * API's ``seller_selection_criteria`` condition strings.
  */
 export const ProductCondition = {
     New: "New",

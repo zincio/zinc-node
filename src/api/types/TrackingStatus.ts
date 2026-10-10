@@ -4,6 +4,7 @@
 export const TrackingStatus = {
     Pending: "pending",
     InTransit: "in_transit",
+    AvailableForPickup: "available_for_pickup",
     Delivered: "delivered",
     Undeliverable: "undeliverable",
 } as const;

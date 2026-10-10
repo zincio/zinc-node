@@ -1,6 +1,6 @@
 export type { CancelOrderOrdersOrderIdCancelPostRequest } from "./CancelOrderOrdersOrderIdCancelPostRequest.js";
+export type { CheckoutOrderCreate } from "./CheckoutOrderCreate.js";
 export type { CreateBulkUploadOrdersBulkPostRequest } from "./CreateBulkUploadOrdersBulkPostRequest.js";
-export type { CreateOrderOrdersPostRequest } from "./CreateOrderOrdersPostRequest.js";
 export type { DownloadBulkResultsOrdersBulkBatchIdResultsCsvGetRequest } from "./DownloadBulkResultsOrdersBulkBatchIdResultsCsvGetRequest.js";
 export type { ExportOrdersCsvOrdersExportGetRequest } from "./ExportOrdersCsvOrdersExportGetRequest.js";
 export type { GetBulkUploadOrdersBulkBatchIdGetRequest } from "./GetBulkUploadOrdersBulkBatchIdGetRequest.js";

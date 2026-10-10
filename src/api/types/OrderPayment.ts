@@ -3,16 +3,13 @@
 import type * as Zinc from "../index.js";
 
 /**
- * Optional payment block. Absent or mode='wallet' ⇒ unchanged prepaid-wallet
- * behavior. mode='card' charges the caller's own saved card for this one order:
- * a hold for max_price + the API fee now, captured for the actual total when the
- * order is placed, released if it never is — the wallet is not involved.
- * mode='connect' charges the end-customer's vaulted card in real time via
- * Stripe Connect (see ConnectService).
+ * Optional payment block. Absent or mode='wallet' draws the order from the
+ * prepaid wallet. mode='connect' charges the end-customer's saved card through
+ * Stripe Connect and keeps your margin (see ConnectService).
  */
 export interface OrderPayment {
     mode?: OrderPayment.Mode | undefined;
-    /** Card mode: one of the caller's saved Stripe payment methods (pm_…) to hold on; omit to use the default. Connect mode: the end-customer's vaulted payment-method id on the connected account. */
+    /** Connect mode: the end-customer's vaulted payment-method id on the connected account. Required for connect mode. */
     payment_method?: (string | null) | undefined;
     /** Connect mode: the end-customer's Stripe Customer id (cus_…) on the connected account. Required to charge a *reusable* saved card off-session; omit only for a one-time, unattached payment method. */
     customer?: (string | null) | undefined;

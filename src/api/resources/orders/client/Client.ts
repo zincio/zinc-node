@@ -424,6 +424,7 @@ export class OrdersClient {
             order_id: orderId,
             search,
             merchant_order_id: merchantOrderId,
+            shipping_name: shippingName,
             status_filter: statusFilter,
             tracking_status: trackingStatus,
             has_tracking: hasTracking,
@@ -442,6 +443,7 @@ export class OrdersClient {
             order_id: orderId,
             search,
             merchant_order_id: merchantOrderId,
+            shipping_name: shippingName,
             status_filter: statusFilter,
             tracking_status: trackingStatus,
             has_tracking: hasTracking,
@@ -503,7 +505,7 @@ export class OrdersClient {
     /**
      * Posts an order to a queue for processing
      *
-     * @param {Zinc.CreateOrderOrdersPostRequest} request
+     * @param {Zinc.CheckoutOrderCreate} request
      * @param {OrdersClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link Zinc.UnprocessableEntityError}
@@ -512,42 +514,29 @@ export class OrdersClient {
      *
      * @example
      *     await client.orders.createOrder({
-     *         body: {
-     *             products: [{
-     *                     url: "https://www.amazon.com/dp/B07JGBW826"
-     *                 }],
-     *             shipping_address: {
-     *                 first_name: "first_name",
-     *                 last_name: "last_name",
-     *                 address_line1: "address_line1",
-     *                 city: "city",
-     *                 postal_code: "postal_code",
-     *                 phone_number: "phone_number"
-     *             },
-     *             max_price: 1
-     *         }
+     *         products: [{
+     *                 url: "https://www.amazon.com/dp/B07JGBW826"
+     *             }],
+     *         max_price: 1
      *     })
      */
     public createOrder(
-        request: Zinc.CreateOrderOrdersPostRequest,
+        request: Zinc.CheckoutOrderCreate,
         requestOptions?: OrdersClient.RequestOptions,
     ): core.HttpResponsePromise<Zinc.OrderResponse> {
         return core.HttpResponsePromise.fromPromise(this.__createOrder(request, requestOptions));
     }
 
     private async __createOrder(
-        request: Zinc.CreateOrderOrdersPostRequest,
+        request: Zinc.CheckoutOrderCreate,
         requestOptions?: OrdersClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.OrderResponse>> {
-        const { "x-zinc-client": zincClient, authorization, body: _body } = request;
+        const { authorization, ..._body } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
             this._options?.headers,
-            mergeOnlyDefinedHeaders({
-                "x-zinc-client": zincClient ?? undefined,
-                authorization: authorization ?? undefined,
-            }),
+            mergeOnlyDefinedHeaders({ authorization: authorization ?? undefined }),
             requestOptions?.headers,
         );
         const _response = await core.fetcher({
@@ -623,6 +612,7 @@ export class OrdersClient {
             search,
             status_filter: statusFilter,
             merchant_order_id: merchantOrderId,
+            shipping_name: shippingName,
             tracking_status: trackingStatus,
             has_tracking: hasTracking,
             return_status: returnStatus,
@@ -638,6 +628,7 @@ export class OrdersClient {
             search,
             status_filter: statusFilter,
             merchant_order_id: merchantOrderId,
+            shipping_name: shippingName,
             tracking_status: trackingStatus,
             has_tracking: hasTracking,
             return_status: returnStatus,

@@ -327,18 +327,7 @@ describe("OrdersClient", () => {
     test("createOrder (1)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-        const rawRequestBody = {
-            products: [{ url: "https://www.amazon.com/dp/B07JGBW826" }],
-            shipping_address: {
-                first_name: "first_name",
-                last_name: "last_name",
-                address_line1: "address_line1",
-                city: "city",
-                postal_code: "postal_code",
-                phone_number: "phone_number",
-            },
-            max_price: 1,
-        };
+        const rawRequestBody = { products: [{ url: "https://www.amazon.com/dp/B07JGBW826" }], max_price: 1 };
         const rawResponseBody = {
             id: "id",
             status: "pending",
@@ -407,6 +396,7 @@ describe("OrdersClient", () => {
                     zinc_tracking_url: "zinc_tracking_url",
                     status: "pending",
                     estimated_delivery_date: "2023-01-15",
+                    delivery_proof_url: "delivery_proof_url",
                     checkpoints: [{ checkpoint_time: "2024-01-15T09:30:00Z", status: "pending", message: "message" }],
                     order_item_ids: ["order_item_ids"],
                     item_mapping: "exact",
@@ -424,6 +414,7 @@ describe("OrdersClient", () => {
                     resolution_notes: "resolution_notes",
                     items: [{ order_item_id: "order_item_id", quantity: 1 }],
                     label_urls: ["label_urls"],
+                    credited_amount: 1,
                     created_at: "2024-01-15T09:30:00Z",
                     updated_at: "2024-01-15T09:30:00Z",
                 },
@@ -457,6 +448,7 @@ describe("OrdersClient", () => {
                 gift: "best_effort",
                 items: "best_effort",
                 quantity: "best_effort",
+                excluded_merchants: ["excluded_merchants"],
                 concessions: [{ concern: "gift", code: "code" }],
             },
             created_at: "2024-01-15T09:30:00Z",
@@ -473,22 +465,12 @@ describe("OrdersClient", () => {
             .build();
 
         const response = await client.orders.createOrder({
-            body: {
-                products: [
-                    {
-                        url: "https://www.amazon.com/dp/B07JGBW826",
-                    },
-                ],
-                shipping_address: {
-                    first_name: "first_name",
-                    last_name: "last_name",
-                    address_line1: "address_line1",
-                    city: "city",
-                    postal_code: "postal_code",
-                    phone_number: "phone_number",
+            products: [
+                {
+                    url: "https://www.amazon.com/dp/B07JGBW826",
                 },
-                max_price: 1,
-            },
+            ],
+            max_price: 1,
         });
         expect(response).toEqual(rawResponseBody);
     });
@@ -496,18 +478,7 @@ describe("OrdersClient", () => {
     test("createOrder (2)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
-        const rawRequestBody = {
-            products: [{ url: "url" }, { url: "url" }],
-            shipping_address: {
-                first_name: "first_name",
-                last_name: "last_name",
-                address_line1: "address_line1",
-                city: "city",
-                postal_code: "postal_code",
-                phone_number: "phone_number",
-            },
-            max_price: 1,
-        };
+        const rawRequestBody = { products: [{ url: "url" }, { url: "url" }], max_price: 1 };
         const rawResponseBody = { key: "value" };
 
         server
@@ -521,25 +492,15 @@ describe("OrdersClient", () => {
 
         await expect(async () => {
             return await client.orders.createOrder({
-                body: {
-                    products: [
-                        {
-                            url: "url",
-                        },
-                        {
-                            url: "url",
-                        },
-                    ],
-                    shipping_address: {
-                        first_name: "first_name",
-                        last_name: "last_name",
-                        address_line1: "address_line1",
-                        city: "city",
-                        postal_code: "postal_code",
-                        phone_number: "phone_number",
+                products: [
+                    {
+                        url: "url",
                     },
-                    max_price: 1,
-                },
+                    {
+                        url: "url",
+                    },
+                ],
+                max_price: 1,
             });
         }).rejects.toThrow(Zinc.UnprocessableEntityError);
     });
@@ -634,6 +595,7 @@ describe("OrdersClient", () => {
                     zinc_tracking_url: "zinc_tracking_url",
                     status: "pending",
                     estimated_delivery_date: "2023-01-15",
+                    delivery_proof_url: "delivery_proof_url",
                     checkpoints: [{ checkpoint_time: "2024-01-15T09:30:00Z", status: "pending", message: "message" }],
                     order_item_ids: ["order_item_ids"],
                     item_mapping: "exact",
@@ -651,6 +613,7 @@ describe("OrdersClient", () => {
                     resolution_notes: "resolution_notes",
                     items: [{ order_item_id: "order_item_id", quantity: 1 }],
                     label_urls: ["label_urls"],
+                    credited_amount: 1,
                     created_at: "2024-01-15T09:30:00Z",
                     updated_at: "2024-01-15T09:30:00Z",
                 },
@@ -684,6 +647,7 @@ describe("OrdersClient", () => {
                 gift: "best_effort",
                 items: "best_effort",
                 quantity: "best_effort",
+                excluded_merchants: ["excluded_merchants"],
                 concessions: [{ concern: "gift", code: "code" }],
             },
             created_at: "2024-01-15T09:30:00Z",
