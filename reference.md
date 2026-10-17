@@ -807,9 +807,12 @@ Buy has further results, not how many came back in this response.
 
 **Shopify stores are their own retailer**: pass the store's Zinc retailer
 slug as `retailer` (e.g. `retailer=yetch`; its domain, `yetch.studio`, also
-works). The store must be in Zinc's catalog: an uncatalogued store is
-rejected with a 422, and `GET /retailers/check?url=...` returns a
-catalogued store's slug. Results are the store's own top matches (~10) and there is no
+works). A store not yet in Zinc's catalog is added on your first request
+for it by domain, with a live key: the store is checked (a few seconds),
+catalogued and served, and its slug is in the response. A domain that is
+not a usable Shopify store is a 422 saying why; a 503 with `Retry-After`
+means the check couldn't run just now. In test mode, an uncatalogued store
+is a 422. `GET /retailers/check?url=...` returns a catalogued store's slug. Results are the store's own top matches (~10) and there is no
 pagination, so `next_page` is always null and `page` must be omitted or 1.
 `product_id` is the store-scoped product handle to pass to the details
 endpoint with the same `retailer`.
@@ -1964,6 +1967,338 @@ await client.returns.getReturnRequest({
 <dd>
 
 **requestOptions:** `ReturnsClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+## Cases
+<details><summary><code>client.cases.<a href="/src/api/resources/cases/client/Client.ts">listCases</a>({ ...params }) -> Zinc.CaseListResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Your team's support cases, newest activity first.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.cases.listCases();
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.ListCasesCasesGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `CasesClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.cases.<a href="/src/api/resources/cases/client/Client.ts">createCase</a>({ ...params }) -> Zinc.CaseResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Open a support case on an order.
+
+Multipart form: `order_id`, `reason`, `body`, optional `return_request_id`,
+and up to 5 `files` (JPEG, PNG, WebP, HEIC or PDF, 25 MB each). An order has
+at most one open case at a time. `reason=return` is only valid together
+with `return_request_id`.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.cases.createCase({
+    order_id: "order_id",
+    reason: "not_received"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.BodyCreateCaseCasesPost` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `CasesClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.cases.<a href="/src/api/resources/cases/client/Client.ts">getCase</a>({ ...params }) -> Zinc.CaseResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+One case with its full thread. Attachment URLs are presigned for 7 days.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.cases.getCase({
+    case_id: "case_id"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.GetCaseCasesCaseIdGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `CasesClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.cases.<a href="/src/api/resources/cases/client/Client.ts">postCaseMessage</a>({ ...params }) -> Zinc.CaseResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Reply on a case. Multipart form: `body` and up to 5 `files`.
+
+Replying on a closed case reopens it, within the case window.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.cases.postCaseMessage({
+    case_id: "case_id"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.BodyPostCaseMessageCasesCaseIdMessagesPost` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `CasesClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.cases.<a href="/src/api/resources/cases/client/Client.ts">closeCase</a>({ ...params }) -> Zinc.CaseResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Close a case you no longer need help with. Idempotent.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.cases.closeCase({
+    case_id: "case_id"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.CloseCaseCasesCaseIdClosePostRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `CasesClient.RequestOptions` 
     
 </dd>
 </dl>

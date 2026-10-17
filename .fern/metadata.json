@@ -5,10 +5,10 @@
     "generatorConfig": {
         "namespaceExport": "Zinc"
     },
-    "originGitCommit": "db49f4080f515a7fd13ceeb0432899d828b259e8",
+    "originGitCommit": "5bc89f047ccf01ab93e035a3a8432d48b51aa301",
     "originGitCommitIsDirty": false,
     "invokedBy": "ci",
-    "requestedVersion": "2026.10.9",
+    "requestedVersion": "2026.10.16",
     "ciProvider": "github",
-    "sdkVersion": "2026.10.9"
+    "sdkVersion": "2026.10.16"
 }

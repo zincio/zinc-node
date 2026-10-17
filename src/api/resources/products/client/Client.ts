@@ -34,9 +34,12 @@ export class ProductsClient {
      *
      * **Shopify stores are their own retailer**: pass the store's Zinc retailer
      * slug as `retailer` (e.g. `retailer=yetch`; its domain, `yetch.studio`, also
-     * works). The store must be in Zinc's catalog: an uncatalogued store is
-     * rejected with a 422, and `GET /retailers/check?url=...` returns a
-     * catalogued store's slug. Results are the store's own top matches (~10) and there is no
+     * works). A store not yet in Zinc's catalog is added on your first request
+     * for it by domain, with a live key: the store is checked (a few seconds),
+     * catalogued and served, and its slug is in the response. A domain that is
+     * not a usable Shopify store is a 422 saying why; a 503 with `Retry-After`
+     * means the check couldn't run just now. In test mode, an uncatalogued store
+     * is a 422. `GET /retailers/check?url=...` returns a catalogued store's slug. Results are the store's own top matches (~10) and there is no
      * pagination, so `next_page` is always null and `page` must be omitted or 1.
      * `product_id` is the store-scoped product handle to pass to the details
      * endpoint with the same `retailer`.

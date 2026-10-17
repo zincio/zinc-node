@@ -40,6 +40,7 @@ describe("ProductsClient", () => {
                     url: "url",
                     variant_id: "variant_id",
                     currency_code: "currency_code",
+                    has_variants: true,
                 },
                 {
                     product_id: "B004U3Y9FU",
@@ -69,6 +70,7 @@ describe("ProductsClient", () => {
                     url: "url",
                     variant_id: "variant_id",
                     currency_code: "currency_code",
+                    has_variants: true,
                 },
             ],
             next_page: 2,

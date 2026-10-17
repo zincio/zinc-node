@@ -30,6 +30,7 @@ export const ErrorCode = {
     ShippingUnavailable: "shipping_unavailable",
     OrderNotCancellable: "order_not_cancellable",
     ReturnNotAllowed: "return_not_allowed",
+    CaseNotAllowed: "case_not_allowed",
     ExternalServiceError: "external_service_error",
     StripeError: "stripe_error",
     StytchError: "stytch_error",

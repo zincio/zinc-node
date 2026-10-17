@@ -27,6 +27,8 @@ export interface OrderResponse {
     created_by?: (string | null) | undefined;
     user_id?: (number | null) | undefined;
     returns?: Zinc.ReturnRequestSummary[] | undefined;
+    /** Support cases on this order, newest first. See `/cases`. */
+    cases?: Zinc.CaseSummary[] | undefined;
     /** Stripe Connect charge details when this order was paid via Connect; null for prepaid-wallet orders. */
     connect?: (Zinc.OrderConnectInfo | null) | undefined;
     /** Card hold details when this order was paid by card outside the wallet and Connect; null for wallet and Connect orders. */

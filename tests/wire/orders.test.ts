@@ -293,6 +293,16 @@ describe("OrdersClient", () => {
                             updated_at: "2024-01-15T09:30:00Z",
                         },
                     ],
+                    cases: [
+                        {
+                            id: "id",
+                            order_id: "order_id",
+                            reason: "not_received",
+                            status: "open",
+                            created_at: "2024-01-15T09:30:00Z",
+                            updated_at: "2024-01-15T09:30:00Z",
+                        },
+                    ],
                     connect: { state: "state" },
                     payment: { state: "state", authorized_cents: 1, fee_cents: 1 },
                     customer_notifications: { email: "email" },
@@ -417,6 +427,20 @@ describe("OrdersClient", () => {
                     credited_amount: 1,
                     created_at: "2024-01-15T09:30:00Z",
                     updated_at: "2024-01-15T09:30:00Z",
+                },
+            ],
+            cases: [
+                {
+                    id: "id",
+                    order_id: "order_id",
+                    return_request_id: "return_request_id",
+                    reason: "not_received",
+                    status: "open",
+                    credited_amount: 1,
+                    opened_by_name: "opened_by_name",
+                    created_at: "2024-01-15T09:30:00Z",
+                    updated_at: "2024-01-15T09:30:00Z",
+                    closed_at: "2024-01-15T09:30:00Z",
                 },
             ],
             connect: {
@@ -616,6 +640,20 @@ describe("OrdersClient", () => {
                     credited_amount: 1,
                     created_at: "2024-01-15T09:30:00Z",
                     updated_at: "2024-01-15T09:30:00Z",
+                },
+            ],
+            cases: [
+                {
+                    id: "id",
+                    order_id: "order_id",
+                    return_request_id: "return_request_id",
+                    reason: "not_received",
+                    status: "open",
+                    credited_amount: 1,
+                    opened_by_name: "opened_by_name",
+                    created_at: "2024-01-15T09:30:00Z",
+                    updated_at: "2024-01-15T09:30:00Z",
+                    closed_at: "2024-01-15T09:30:00Z",
                 },
             ],
             connect: {

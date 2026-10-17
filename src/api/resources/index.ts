@@ -1,6 +1,8 @@
 export * from "./agent/client/requests/index.js";
 export * as agent from "./agent/index.js";
 export * from "./agent/types/index.js";
+export * from "./cases/client/requests/index.js";
+export * as cases from "./cases/index.js";
 export * from "./device/client/requests/index.js";
 export * as device from "./device/index.js";
 export * as health from "./health/index.js";

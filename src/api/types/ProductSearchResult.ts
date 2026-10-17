@@ -33,4 +33,5 @@ export interface ProductSearchResult {
     url?: (string | null) | undefined;
     variant_id?: (string | null) | undefined;
     currency_code?: (string | null) | undefined;
+    has_variants?: (boolean | null) | undefined;
 }

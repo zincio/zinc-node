@@ -15,4 +15,6 @@ export interface Sku {
     available?: (boolean | null) | undefined;
     /** True when the retailer listing advertises free shipping; null when unknown (never false — providers only flag the free case). */
     free_shipping?: (boolean | null) | undefined;
+    /** Etsy only: true when the listing needs an option chosen (size, color...) before it can be ordered; pass the choice as `variant` on the order. The options themselves aren't listed. Null for other retailers. */
+    has_variants?: (boolean | null) | undefined;
 }

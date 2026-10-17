@@ -24,6 +24,7 @@ describe("SearchClient", () => {
                     num_reviews: 1,
                     available: true,
                     free_shipping: true,
+                    has_variants: true,
                 },
             ],
             excluded_by_price: 1,

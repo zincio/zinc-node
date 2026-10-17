@@ -1,6 +1,6 @@
 {
     "name": "zinc",
-    "version": "2026.10.9",
+    "version": "2026.10.16",
     "private": false,
     "repository": {
         "type": "git",
@@ -87,6 +87,17 @@
                 "default": "./dist/cjs/api/resources/returns/exports.js"
             },
             "default": "./dist/cjs/api/resources/returns/exports.js"
+        },
+        "./cases": {
+            "import": {
+                "types": "./dist/esm/api/resources/cases/exports.d.mts",
+                "default": "./dist/esm/api/resources/cases/exports.mjs"
+            },
+            "require": {
+                "types": "./dist/cjs/api/resources/cases/exports.d.ts",
+                "default": "./dist/cjs/api/resources/cases/exports.js"
+            },
+            "default": "./dist/cjs/api/resources/cases/exports.js"
         },
         "./retailers": {
             "import": {

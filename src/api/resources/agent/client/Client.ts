@@ -166,7 +166,7 @@ export class AgentClient {
             q,
             min_price: minPrice,
             max_price: maxPrice,
-            retailer: Array.isArray(retailer) ? retailer.map((item) => item) : retailer != null ? retailer : undefined,
+            retailer,
             sort: sort != null ? sort : undefined,
             limit,
         };
