@@ -126,7 +126,7 @@ export interface GetProductDetailsProductsProductIdGetResponse {
     num_favorers?: (number | null) | undefined;
     /** Etsy only. Listing view count. */
     views?: (number | null) | undefined;
-    /** Etsy only. Whether the listing has variants at all. When true but `variants` is empty, Etsy did not expose the inventory matrix. */
+    /** Etsy only. Whether the listing has options (size, color...) that must be chosen before it can be ordered. The options themselves aren't returned: Etsy shares a listing's inventory only with its own shop, so `variants` is empty on Etsy. */
     has_variations?: (boolean | null) | undefined;
     /** Etsy only. Selling shop's name. */
     shop_name?: (string | null) | undefined;
@@ -138,7 +138,7 @@ export interface GetProductDetailsProductsProductIdGetResponse {
     shop_review_count?: (number | null) | undefined;
     /** Etsy only. Shop is on vacation mode. */
     shop_is_vacation?: (boolean | null) | undefined;
-    /** Shopify and Etsy only. Per-variant price and availability. Amazon and Walmart use `variant_specifics` / `all_variants` instead. */
+    /** Shopify only. Per-variant price and availability. Empty on Etsy, whose options aren't available (see `has_variations`). Amazon and Walmart use `variant_specifics` / `all_variants` instead. */
     variants?: GetProductDetailsProductsProductIdGetResponse.Variants.Item[] | undefined;
     /** Accepts any additional properties */
     [key: string]: any;

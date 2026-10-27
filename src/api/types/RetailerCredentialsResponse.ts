@@ -12,6 +12,8 @@ export interface RetailerCredentialsResponse {
     retailer_id?: (number | null) | undefined;
     /** Whether TOTP 2FA is configured for this account. */
     has_totp?: boolean | undefined;
+    /** Whether a full payment card number is stored for this account. */
+    has_card_number?: boolean | undefined;
     /** Whether email forwarding has been verified for this account. */
     has_forwarding?: boolean | undefined;
     /** Whether this credential is paused (jobs will not be picked up). */

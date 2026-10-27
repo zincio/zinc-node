@@ -16,5 +16,15 @@ export interface SearchProductsProductsSearchGetRequest {
     page?: number | null;
     /** Only return items that ship for free (Walmart and Best Buy: ship price of 0). Currently a no-op for Amazon: the upstream search data under-reports Prime, so filtering on it would drop valid items — Amazon results are returned unfiltered. Filtering happens after pagination, so per-page counts vary; use `next_page` in the response to keep paging — an empty page with a non-null `next_page` is not the end of results. Rejected for Shopify stores: their search data carries no shipping information, so the filter cannot be honored. */
     free_shipping?: boolean;
+    /** Amazon only (any other retailer is a 400). Amazon's sort order, its `s` value: `price-asc-rank`, `price-desc-rank`, `review-rank`, `date-desc-rank` or `exact-aware-popularity-rank`. Omit for Amazon's own relevance order. */
+    sort?: string | null;
+    /** Amazon only (any other retailer is a 400). Filters to apply, as Amazon's `rh` string: comma-separated refinement option `id`s from a previous response's `refinements`. To narrow a search, append an option's `id` to that response's `rh`. */
+    rh?: string | null;
+    /** Amazon only (any other retailer is a 400). Browse node: an Amazon category id to search within. */
+    bbn?: string | null;
+    /** Amazon only (any other retailer is a 400). Amazon department (search index), e.g. `electronics` or `stripbooks`. */
+    i?: string | null;
+    /** Amazon only (any other retailer is a 400). Further query-string parameters for Amazon's search page, URL-encoded as one value (`a=1&b=2`). */
+    extra_params?: string | null;
     authorization?: string | null;
 }

@@ -14,5 +14,7 @@ export interface RetailerCredentialsCreate {
     retailer?: string | null;
     /** TOTP secret key for 2FA (will be encrypted at rest). */
     totp_secret?: string | null;
+    /** Full number of the account's payment card, for retailers that ask to re-enter it at checkout (encrypted at rest, never returned). */
+    card_number?: string | null;
     retailer_config?: Record<string, unknown> | null;
 }

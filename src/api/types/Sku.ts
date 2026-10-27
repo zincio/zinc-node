@@ -6,6 +6,8 @@
 export interface Sku {
     url: string;
     retailer: string;
+    /** The id to look this listing up by on /products/*: pass it with `retailer` to /products/{product_id} for live details, and to /products/{product_id}/offers (Amazon and Walmart) for live offers. ASIN on Amazon, item id on Walmart, listing id on Etsy, product handle on a Shopify store. Null when /products/* doesn't cover the retailer, or the listing's id isn't known. */
+    product_id?: (string | null) | undefined;
     title?: (string | null) | undefined;
     image?: (string | null) | undefined;
     brand?: (string | null) | undefined;

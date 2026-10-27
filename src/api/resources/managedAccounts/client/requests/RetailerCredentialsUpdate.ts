@@ -13,6 +13,8 @@ export interface RetailerCredentialsUpdate {
     password?: string | null;
     retailer?: string | null;
     totp_secret?: string | null;
+    /** Full payment card number (encrypted at rest, never returned). Omit or null to keep the stored number; an empty string removes it. */
+    card_number?: string | null;
     /** Merged into the stored config key by key: a key you send replaces that key, a key set to null is removed, and keys you omit are kept. */
     retailer_config?: Record<string, unknown> | null;
 }

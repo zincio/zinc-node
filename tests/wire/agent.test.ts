@@ -49,6 +49,13 @@ describe("AgentClient", () => {
             gift_message: "gift_message",
             retailer_credentials_id: "retailer_credentials_id",
             retailer_credentials_uuid: "retailer_credentials_uuid",
+            buying_account: {
+                short_id: "short_id",
+                email: "email",
+                is_global: true,
+                has_password: true,
+                has_totp: true,
+            },
             job_result: {
                 success: true,
                 error: "error",
@@ -155,6 +162,8 @@ describe("AgentClient", () => {
                 items: "best_effort",
                 quantity: "best_effort",
                 excluded_merchants: ["excluded_merchants"],
+                included_merchants: ["included_merchants"],
+                first_party_only: true,
                 concessions: [{ concern: "gift", code: "code" }],
             },
             created_at: "2024-01-15T09:30:00Z",
@@ -347,6 +356,7 @@ describe("AgentClient", () => {
                 {
                     url: "url",
                     retailer: "retailer",
+                    product_id: "product_id",
                     title: "title",
                     image: "image",
                     brand: "brand",
@@ -468,6 +478,9 @@ describe("AgentClient", () => {
                     has_variants: true,
                 },
             ],
+            refinements: [{ group_name: "group_name", options: [{}] }],
+            rh: "rh",
+            showing: { start: 1, end: 1, of: 1, pages: 1 },
             next_page: 2,
         };
 
@@ -1166,24 +1179,14 @@ describe("AgentClient", () => {
             shop_is_vacation: false,
             variants: [
                 {
-                    variant_id: "9876543210",
+                    variant_id: "variant_id",
                     title: "title",
-                    sku: "MUG-12-SPECKLE",
-                    price: 3400,
-                    currency_code: "USD",
-                    quantity: 5,
+                    sku: "sku",
+                    price: 1,
+                    currency_code: "currency_code",
+                    quantity: 1,
                     available: true,
-                    properties: [{ name: "Glaze", value: "Speckled White" }],
-                },
-                {
-                    variant_id: "9876543211",
-                    title: "title",
-                    sku: "MUG-12-SLATE",
-                    price: 3400,
-                    currency_code: "USD",
-                    quantity: 3,
-                    available: true,
-                    properties: [{ name: "Glaze", value: "Slate Blue" }],
+                    properties: [{}],
                 },
             ],
         };

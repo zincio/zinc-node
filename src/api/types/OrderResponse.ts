@@ -19,6 +19,7 @@ export interface OrderResponse {
     gift_message?: (string | null) | undefined;
     retailer_credentials_id: string | null;
     retailer_credentials_uuid?: (string | null) | undefined;
+    buying_account?: (Zinc.OrderBuyingAccount | null) | undefined;
     /** Fulfillment result and price breakdown for a completed or failed order; null while processing. */
     job_result?: (Zinc.OrderJobResult | null) | undefined;
     /** The retailer's own order number(s) for this order (e.g. an Amazon `113-…` ID), as recorded when it was placed. Empty while processing, or if the order never reached the retailer. */

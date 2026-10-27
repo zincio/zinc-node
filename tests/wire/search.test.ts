@@ -16,6 +16,7 @@ describe("SearchClient", () => {
                 {
                     url: "url",
                     retailer: "retailer",
+                    product_id: "product_id",
                     title: "title",
                     image: "image",
                     brand: "brand",

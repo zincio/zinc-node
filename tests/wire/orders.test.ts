@@ -273,6 +273,13 @@ describe("OrdersClient", () => {
                     gift_message: "gift_message",
                     retailer_credentials_id: "retailer_credentials_id",
                     retailer_credentials_uuid: "retailer_credentials_uuid",
+                    buying_account: {
+                        short_id: "short_id",
+                        email: "email",
+                        is_global: true,
+                        has_password: true,
+                        has_totp: true,
+                    },
                     merchant_order_ids: ["merchant_order_ids"],
                     tracking_numbers: [
                         {
@@ -367,6 +374,13 @@ describe("OrdersClient", () => {
             gift_message: "gift_message",
             retailer_credentials_id: "retailer_credentials_id",
             retailer_credentials_uuid: "retailer_credentials_uuid",
+            buying_account: {
+                short_id: "short_id",
+                email: "email",
+                is_global: true,
+                has_password: true,
+                has_totp: true,
+            },
             job_result: {
                 success: true,
                 error: "error",
@@ -473,6 +487,8 @@ describe("OrdersClient", () => {
                 items: "best_effort",
                 quantity: "best_effort",
                 excluded_merchants: ["excluded_merchants"],
+                included_merchants: ["included_merchants"],
+                first_party_only: true,
                 concessions: [{ concern: "gift", code: "code" }],
             },
             created_at: "2024-01-15T09:30:00Z",
@@ -580,6 +596,13 @@ describe("OrdersClient", () => {
             gift_message: "gift_message",
             retailer_credentials_id: "retailer_credentials_id",
             retailer_credentials_uuid: "retailer_credentials_uuid",
+            buying_account: {
+                short_id: "short_id",
+                email: "email",
+                is_global: true,
+                has_password: true,
+                has_totp: true,
+            },
             job_result: {
                 success: true,
                 error: "error",
@@ -686,6 +709,8 @@ describe("OrdersClient", () => {
                 items: "best_effort",
                 quantity: "best_effort",
                 excluded_merchants: ["excluded_merchants"],
+                included_merchants: ["included_merchants"],
+                first_party_only: true,
                 concessions: [{ concern: "gift", code: "code" }],
             },
             created_at: "2024-01-15T09:30:00Z",

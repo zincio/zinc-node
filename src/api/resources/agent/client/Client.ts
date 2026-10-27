@@ -24,12 +24,13 @@ export class AgentClient {
     }
 
     /**
-     * Place an order via the Machine Payments Protocol (MPP).
+     * Place an order and pay for it in the same request — no Zinc account.
      *
-     * No Zinc account required. Payment is made upfront via MPP.
-     * Supports multiple payment methods (e.g. Tempo, Stripe).
-     * If no valid payment credential is provided, returns HTTP 402
-     * with payment challenges for all configured methods.
+     * The agent pays ``max_price`` + the API fee upfront over HTTP 402 on any
+     * configured rail: Link (a Stripe Shared Payment Token over MPP), MPP Tempo,
+     * or x402 (USDC on Base or Solana). Unused budget is refunded to the original
+     * payment. If no valid payment proof is provided, returns HTTP 402 with a
+     * challenge for every configured rail (``?method=`` narrows it to one).
      *
      * Payment is the gate, but only for a genuine discovery probe: a bodyless
      * POST (from a registry like mppscan) is parsed leniently and reaches the 402
@@ -40,6 +41,10 @@ export class AgentClient {
      * payment against the challenge and then be rejected on the retry, with no way
      * to refund the settlement (the MPP layer cannot verify or reverse a payment
      * whose retry body no longer matches the challenge).
+     *
+     * ``X-Test-Mode: true`` runs the same flow on testnets: every rail is swapped
+     * for a testnet-only twin, and the order is created in the sandbox, where it
+     * is simulated like any ``zn_test_`` order. Testnet payments are not refunded.
      *
      * @param {Zinc.OrderCreate} request
      * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -77,13 +82,16 @@ export class AgentClient {
         request: Zinc.OrderCreate,
         requestOptions?: AgentClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.OrderResponse>> {
-        const { method, authorization, ..._body } = request;
+        const { method, authorization, "x-test-mode": testMode, ..._body } = request;
         const _queryParams: Record<string, unknown> = {
             method,
         };
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             this._options?.headers,
-            mergeOnlyDefinedHeaders({ authorization: authorization ?? undefined }),
+            mergeOnlyDefinedHeaders({
+                authorization: authorization ?? undefined,
+                "x-test-mode": testMode ?? undefined,
+            }),
             requestOptions?.headers,
         );
         const _response = await core.fetcher({
@@ -273,12 +281,27 @@ export class AgentClient {
         request: Zinc.AgentProductSearchRequest,
         requestOptions?: AgentClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.ProductSearchResponse>> {
-        const { query, retailer, page, free_shipping: freeShipping } = request;
+        const {
+            query,
+            retailer,
+            page,
+            free_shipping: freeShipping,
+            sort,
+            rh,
+            bbn,
+            i,
+            extra_params: extraParams,
+        } = request;
         const _queryParams: Record<string, unknown> = {
             query,
             retailer,
             page,
             free_shipping: freeShipping,
+            sort,
+            rh,
+            bbn,
+            i,
+            extra_params: extraParams,
         };
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(this._options?.headers, requestOptions?.headers);
         const _response = await core.fetcher({
@@ -436,10 +459,11 @@ export class AgentClient {
      * `listing_type` is `physical`, `download` or `both` — a download has nothing
      * to ship. `available` accounts for the shop being on vacation as well as
      * stock, so it can be false on an in-stock active listing; `shop_is_vacation`
-     * says which it was. `variants` is populated only when Etsy exposes a
-     * listing's inventory matrix — check `has_variations` to tell "no variants"
-     * from "variants not visible". `taxonomy_id` is Etsy's raw category id; there
-     * is no category name yet. `async` is not supported for Etsy.
+     * says which it was. `variants` is always empty: Etsy shares a listing's
+     * inventory only with its own shop. `has_variations` says whether the listing
+     * has options that must be chosen before ordering; read them from the listing
+     * page and pass the choice as `variant` on the order. `taxonomy_id` is Etsy's
+     * raw category id; there is no category name yet. `async` is not supported for Etsy.
      *
      * @param {Zinc.AgentProductDetailsRequest} request
      * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.

@@ -60,7 +60,7 @@ export class ProductsClient {
      * details endpoint reports the shop's rating explicitly. `product_id` is the
      * numeric listing id.
      *
-     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free, return synthetic sample data (marked `X-Zinc-Test-Data: synthetic`) and never touch the live wallet, up to 10,000 per account per UTC day; past that they get `429` until midnight UTC.
      *
      * @param {Zinc.SearchProductsProductsSearchGetRequest} request
      * @param {ProductsClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -87,12 +87,28 @@ export class ProductsClient {
         request: Zinc.SearchProductsProductsSearchGetRequest,
         requestOptions?: ProductsClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.ProductSearchResponse>> {
-        const { query, retailer, page, free_shipping: freeShipping, authorization } = request;
+        const {
+            query,
+            retailer,
+            page,
+            free_shipping: freeShipping,
+            sort,
+            rh,
+            bbn,
+            i,
+            extra_params: extraParams,
+            authorization,
+        } = request;
         const _queryParams: Record<string, unknown> = {
             query,
             retailer,
             page,
             free_shipping: freeShipping,
+            sort,
+            rh,
+            bbn,
+            i,
+            extra_params: extraParams,
         };
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
@@ -144,12 +160,102 @@ export class ProductsClient {
     }
 
     /**
+     * The products on a public Amazon wishlist or gift list.
+     *
+     * Each product carries its ASIN as `product_id` (pass it to the details or
+     * offers endpoints with the same `retailer`), the price shown on the list in
+     * cents as `buy_box_price`, whether it can be added to cart as `available`,
+     * and the list owner's `quantity_requested` / `quantity_purchased`. A long
+     * list takes a while to read: `pages` bounds it. A private list, or a url
+     * that is not a list, comes back from the upstream as an error.
+     *
+     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free, return synthetic sample data (marked `X-Zinc-Test-Data: synthetic`) and never touch the live wallet, up to 10,000 per account per UTC day; past that they get `429` until midnight UTC.
+     *
+     * @param {Zinc.GetWishlistProductsWishlistsGetRequest} request
+     * @param {ProductsClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Zinc.PaymentRequiredError}
+     * @throws {@link Zinc.UnprocessableEntityError}
+     * @throws {@link errors.ZincError}
+     * @throws {@link errors.ZincTimeoutError}
+     *
+     * @example
+     *     await client.products.getWishlist({
+     *         url: "url"
+     *     })
+     */
+    public getWishlist(
+        request: Zinc.GetWishlistProductsWishlistsGetRequest,
+        requestOptions?: ProductsClient.RequestOptions,
+    ): core.HttpResponsePromise<Zinc.WishlistResponse> {
+        return core.HttpResponsePromise.fromPromise(this.__getWishlist(request, requestOptions));
+    }
+
+    private async __getWishlist(
+        request: Zinc.GetWishlistProductsWishlistsGetRequest,
+        requestOptions?: ProductsClient.RequestOptions,
+    ): Promise<core.WithRawResponse<Zinc.WishlistResponse>> {
+        const { url, pages, authorization } = request;
+        const _queryParams: Record<string, unknown> = {
+            url,
+            pages,
+        };
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            mergeOnlyDefinedHeaders({ authorization: authorization ?? undefined }),
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.ZincEnvironment.Production,
+                "products/wishlists",
+            ),
+            method: "GET",
+            headers: _headers,
+            queryString: core.url
+                .queryBuilder()
+                .addMany(_queryParams)
+                .mergeAdditional(requestOptions?.queryParams)
+                .build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Zinc.WishlistResponse, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 402:
+                    throw new Zinc.PaymentRequiredError(_response.error.body as unknown, _response.rawResponse);
+                case 422:
+                    throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.ZincError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/products/wishlists");
+    }
+
+    /**
      * Get offers for a product from a retailer.
      *
      * Not available for Shopify stores: a storefront lists one seller (itself),
      * so per-variant price and availability live on the details endpoint instead.
      *
-     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free, return synthetic sample data (marked `X-Zinc-Test-Data: synthetic`) and never touch the live wallet, up to 10,000 per account per UTC day; past that they get `429` until midnight UTC.
      *
      * @param {Zinc.GetProductOffersProductsProductIdOffersGetRequest} request
      * @param {ProductsClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -273,12 +379,13 @@ export class ProductsClient {
      * `listing_type` is `physical`, `download` or `both` — a download has nothing
      * to ship. `available` accounts for the shop being on vacation as well as
      * stock, so it can be false on an in-stock active listing; `shop_is_vacation`
-     * says which it was. `variants` is populated only when Etsy exposes a
-     * listing's inventory matrix — check `has_variations` to tell "no variants"
-     * from "variants not visible". `taxonomy_id` is Etsy's raw category id; there
-     * is no category name yet. `async` is not supported for Etsy.
+     * says which it was. `variants` is always empty: Etsy shares a listing's
+     * inventory only with its own shop. `has_variations` says whether the listing
+     * has options that must be chosen before ordering; read them from the listing
+     * page and pass the choice as `variant` on the order. `taxonomy_id` is Etsy's
+     * raw category id; there is no category name yet. `async` is not supported for Etsy.
      *
-     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free, return synthetic sample data (marked `X-Zinc-Test-Data: synthetic`) and never touch the live wallet, up to 10,000 per account per UTC day; past that they get `429` until midnight UTC.
      *
      * @param {Zinc.GetProductDetailsProductsProductIdGetRequest} request
      * @param {ProductsClient.RequestOptions} requestOptions - Request-specific configuration.

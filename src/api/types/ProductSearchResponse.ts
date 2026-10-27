@@ -8,6 +8,12 @@ import type * as Zinc from "../index.js";
 export interface ProductSearchResponse {
     status: string;
     results?: Zinc.ProductSearchResult[] | undefined;
-    /** Only set on free_shipping searches: the page to request to keep paging. An empty `results` with a non-null next_page is NOT the end of results — request next_page to continue. None means results are exhausted (or the search was unfiltered). */
+    /** Amazon only: the filters (facets) Amazon offers for this search. Null for other retailers. */
+    refinements?: (Zinc.SearchRefinementGroup[] | null) | undefined;
+    /** Amazon only: the filters applied to this search, as Amazon's `rh` string. Append a refinement option's `id` (comma-separated) and pass it back as `rh` to narrow the search. */
+    rh?: (string | null) | undefined;
+    /** Amazon only: the result range and page count. */
+    showing?: (Zinc.SearchShowing | null) | undefined;
+    /** The page to request to keep paging, set while the retailer has more results: on every Etsy and Best Buy search, on a `free_shipping` search for the other named retailers, and never for a Shopify store (its search is a single page). An empty `results` with a non-null next_page is NOT the end of results — request next_page to continue. Null means there is nothing more to page through. */
     next_page?: (number | null) | undefined;
 }

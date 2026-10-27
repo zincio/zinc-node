@@ -833,7 +833,7 @@ product's would be misleading; `brand` carries the shop name, and the
 details endpoint reports the shop's rating explicitly. `product_id` is the
 numeric listing id.
 
-**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free, return synthetic sample data (marked `X-Zinc-Test-Data: synthetic`) and never touch the live wallet, up to 10,000 per account per UTC day; past that they get `429` until midnight UTC.
 </dd>
 </dl>
 </dd>
@@ -887,6 +887,80 @@ await client.products.searchProducts({
 </dl>
 </details>
 
+<details><summary><code>client.products.<a href="/src/api/resources/products/client/Client.ts">getWishlist</a>({ ...params }) -> Zinc.WishlistResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+The products on a public Amazon wishlist or gift list.
+
+Each product carries its ASIN as `product_id` (pass it to the details or
+offers endpoints with the same `retailer`), the price shown on the list in
+cents as `buy_box_price`, whether it can be added to cart as `available`,
+and the list owner's `quantity_requested` / `quantity_purchased`. A long
+list takes a while to read: `pages` bounds it. A private list, or a url
+that is not a list, comes back from the upstream as an error.
+
+**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free, return synthetic sample data (marked `X-Zinc-Test-Data: synthetic`) and never touch the live wallet, up to 10,000 per account per UTC day; past that they get `429` until midnight UTC.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.products.getWishlist({
+    url: "url"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.GetWishlistProductsWishlistsGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `ProductsClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 <details><summary><code>client.products.<a href="/src/api/resources/products/client/Client.ts">getProductOffers</a>({ ...params }) -> Zinc.GetProductOffersProductsProductIdOffersGetResponse</code></summary>
 <dl>
 <dd>
@@ -904,7 +978,7 @@ Get offers for a product from a retailer.
 Not available for Shopify stores: a storefront lists one seller (itself),
 so per-variant price and availability live on the details endpoint instead.
 
-**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free, return synthetic sample data (marked `X-Zinc-Test-Data: synthetic`) and never touch the live wallet, up to 10,000 per account per UTC day; past that they get `429` until midnight UTC.
 </dd>
 </dl>
 </dd>
@@ -1000,12 +1074,13 @@ seller's rating is a different claim.
 `listing_type` is `physical`, `download` or `both` — a download has nothing
 to ship. `available` accounts for the shop being on vacation as well as
 stock, so it can be false on an in-stock active listing; `shop_is_vacation`
-says which it was. `variants` is populated only when Etsy exposes a
-listing's inventory matrix — check `has_variations` to tell "no variants"
-from "variants not visible". `taxonomy_id` is Etsy's raw category id; there
-is no category name yet. `async` is not supported for Etsy.
+says which it was. `variants` is always empty: Etsy shares a listing's
+inventory only with its own shop. `has_variations` says whether the listing
+has options that must be chosen before ordering; read them from the listing
+page and pass the choice as `variant` on the order. `taxonomy_id` is Etsy's
+raw category id; there is no category name yet. `async` is not supported for Etsy.
 
-**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free, return synthetic sample data (marked `X-Zinc-Test-Data: synthetic`) and never touch the live wallet, up to 10,000 per account per UTC day; past that they get `429` until midnight UTC.
 </dd>
 </dl>
 </dd>
@@ -1074,7 +1149,7 @@ await client.products.getProductDetails({
 
 Search for products across retailers; returns orderable zn_sku_ listings.
 
-**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+**Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free, return synthetic sample data (marked `X-Zinc-Test-Data: synthetic`) and never touch the live wallet, up to 10,000 per account per UTC day; past that they get `429` until midnight UTC.
 </dd>
 </dl>
 </dd>
@@ -1410,12 +1485,13 @@ await client.managedAccounts.deleteRetailerCredentials({
 <dl>
 <dd>
 
-Place an order via the Machine Payments Protocol (MPP).
+Place an order and pay for it in the same request — no Zinc account.
 
-No Zinc account required. Payment is made upfront via MPP.
-Supports multiple payment methods (e.g. Tempo, Stripe).
-If no valid payment credential is provided, returns HTTP 402
-with payment challenges for all configured methods.
+The agent pays ``max_price`` + the API fee upfront over HTTP 402 on any
+configured rail: Link (a Stripe Shared Payment Token over MPP), MPP Tempo,
+or x402 (USDC on Base or Solana). Unused budget is refunded to the original
+payment. If no valid payment proof is provided, returns HTTP 402 with a
+challenge for every configured rail (``?method=`` narrows it to one).
 
 Payment is the gate, but only for a genuine discovery probe: a bodyless
 POST (from a registry like mppscan) is parsed leniently and reaches the 402
@@ -1426,6 +1502,10 @@ challenge is issued or honored. Otherwise an agent could settle an on-chain
 payment against the challenge and then be rejected on the retry, with no way
 to refund the settlement (the MPP layer cannot verify or reverse a payment
 whose retry body no longer matches the challenge).
+
+``X-Test-Mode: true`` runs the same flow on testnets: every rail is swapped
+for a testnet-only twin, and the order is created in the sandbox, where it
+is simulated like any ``zn_test_`` order. Testnet payments are not refunded.
 </dd>
 </dl>
 </dd>
@@ -1764,10 +1844,11 @@ seller's rating is a different claim.
 `listing_type` is `physical`, `download` or `both` — a download has nothing
 to ship. `available` accounts for the shop being on vacation as well as
 stock, so it can be false on an in-stock active listing; `shop_is_vacation`
-says which it was. `variants` is populated only when Etsy exposes a
-listing's inventory matrix — check `has_variations` to tell "no variants"
-from "variants not visible". `taxonomy_id` is Etsy's raw category id; there
-is no category name yet. `async` is not supported for Etsy.
+says which it was. `variants` is always empty: Etsy shares a listing's
+inventory only with its own shop. `has_variations` says whether the listing
+has options that must be chosen before ordering; read them from the listing
+page and pass the choice as `variant` on the order. `taxonomy_id` is Etsy's
+raw category id; there is no category name yet. `async` is not supported for Etsy.
 </dd>
 </dl>
 </dd>

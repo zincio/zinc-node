@@ -23,6 +23,8 @@ export interface OrderCreate {
     /** Restrict the 402 to a single payment method (e.g. 'stripe', 'tempo', or 'x402'). Omit to advertise every configured method. Use this when your client can satisfy only one rail — it avoids returning multiple WWW-Authenticate challenges, which many HTTP clients mishandle. */
     method?: string | null;
     authorization?: string | null;
+    /** Set to 'true' for test mode: the 402 offers testnet rails only (Tempo testnet, Base Sepolia, Solana devnet), and the order is simulated in the sandbox — no real funds, no retailer order. The X-Api-Key returned is a zn_test_ key. */
+    "x-test-mode"?: string | null;
     products: Zinc.OrderProduct[];
     shipping_address: Zinc.Address;
     /** Maximum price (in cents) allowed for an order before it is finalized. */
@@ -45,6 +47,6 @@ export interface OrderCreate {
     payment?: Zinc.OrderPayment | null;
     /** Opt in to emailing the end customer order updates (and unlock the public tracking page for this order). Adds a per-order surcharge. Omit for no customer notifications (default). */
     customer_notifications?: Zinc.CustomerNotifications | null;
-    /** Loosen the order's strict-by-default rules. Omit for today's behaviour: any rule that can't be met fails the order. Set a rule (`gift`, `items`, `quantity`) to `best_effort` to have the order placed anyway; anything left unset stays strict. Whatever was relaxed is reported back in `fulfillment.concessions` on the order. `max_price` is never relaxed. `excluded_merchants` tightens instead: merchants this order must not be bought from. */
+    /** Loosen the order's strict-by-default rules. Omit for today's behaviour: any rule that can't be met fails the order. Set a rule (`gift`, `items`, `quantity`) to `best_effort` to have the order placed anyway; anything left unset stays strict. Whatever was relaxed is reported back in `fulfillment.concessions` on the order. `max_price` is never relaxed. `excluded_merchants`, `included_merchants` and `first_party_only` tighten instead: which merchants this order may be bought from. */
     fulfillment?: Zinc.FulfillmentPreferences | null;
 }

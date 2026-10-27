@@ -6,7 +6,7 @@ export interface CaseMessageResponse {
     id: string;
     /** `customer` (you or a teammate), `zinc` (our support team), or `system` (status changes, reopens, credits). */
     author: CaseMessageResponse.Author;
-    /** Who wrote it: the teammate's name for `customer` messages, `Zinc support` for `zinc`, null for `system` lines. */
+    /** Who wrote it: the teammate's name for `customer` messages, `Zinc support` for `zinc` (`Zinc support (AI assistant)` when our AI assistant wrote it), null for `system` lines. */
     author_name?: (string | null) | undefined;
     /** True when the caller wrote this message. */
     from_you?: boolean | undefined;

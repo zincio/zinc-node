@@ -73,6 +73,9 @@ describe("ProductsClient", () => {
                     has_variants: true,
                 },
             ],
+            refinements: [{ group_name: "group_name", options: [{}] }],
+            rh: "rh",
+            showing: { start: 1, end: 1, of: 1, pages: 1 },
             next_page: 2,
         };
 
@@ -113,6 +116,82 @@ describe("ProductsClient", () => {
             return await client.products.searchProducts({
                 query: "x",
                 retailer: "retailer",
+            });
+        }).rejects.toThrow(Zinc.UnprocessableEntityError);
+    });
+
+    test("getWishlist (1)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = {
+            retailer: "retailer",
+            url: "url",
+            wishlist_title: "wishlist_title",
+            wishlist_description: "wishlist_description",
+            products: [
+                {
+                    product_id: "product_id",
+                    buy_box_price: 1,
+                    available: true,
+                    quantity_purchased: 1,
+                    quantity_requested: 1,
+                },
+            ],
+        };
+
+        server
+            .mockEndpoint()
+            .get("/products/wishlists")
+            .respondWith()
+            .statusCode(200)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        const response = await client.products.getWishlist({
+            url: "url",
+        });
+        expect(response).toEqual(rawResponseBody);
+    });
+
+    test("getWishlist (2)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = { key: "value" };
+
+        server
+            .mockEndpoint()
+            .get("/products/wishlists")
+            .respondWith()
+            .statusCode(402)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.products.getWishlist({
+                url: "x",
+            });
+        }).rejects.toThrow(Zinc.PaymentRequiredError);
+    });
+
+    test("getWishlist (3)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = { key: "value" };
+
+        server
+            .mockEndpoint()
+            .get("/products/wishlists")
+            .respondWith()
+            .statusCode(422)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.products.getWishlist({
+                url: "x",
             });
         }).rejects.toThrow(Zinc.UnprocessableEntityError);
     });
@@ -753,24 +832,14 @@ describe("ProductsClient", () => {
             shop_is_vacation: false,
             variants: [
                 {
-                    variant_id: "9876543210",
+                    variant_id: "variant_id",
                     title: "title",
-                    sku: "MUG-12-SPECKLE",
-                    price: 3400,
-                    currency_code: "USD",
-                    quantity: 5,
+                    sku: "sku",
+                    price: 1,
+                    currency_code: "currency_code",
+                    quantity: 1,
                     available: true,
-                    properties: [{ name: "Glaze", value: "Speckled White" }],
-                },
-                {
-                    variant_id: "9876543211",
-                    title: "title",
-                    sku: "MUG-12-SLATE",
-                    price: 3400,
-                    currency_code: "USD",
-                    quantity: 3,
-                    available: true,
-                    properties: [{ name: "Glaze", value: "Slate Blue" }],
+                    properties: [{}],
                 },
             ],
         };

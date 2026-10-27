@@ -6,6 +6,7 @@ export const ErrorCode = {
     Forbidden: "forbidden",
     InvalidToken: "invalid_token",
     TokenExpired: "token_expired",
+    AccountSuspended: "account_suspended",
     NotFound: "not_found",
     AlreadyExists: "already_exists",
     ValidationError: "validation_error",

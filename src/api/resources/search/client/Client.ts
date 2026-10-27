@@ -26,7 +26,7 @@ export class SearchClient {
     /**
      * Search for products across retailers; returns orderable zn_sku_ listings.
      *
-     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free and never touch the live wallet.
+     * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free, return synthetic sample data (marked `X-Zinc-Test-Data: synthetic`) and never touch the live wallet, up to 10,000 per account per UTC day; past that they get `429` until midnight UTC.
      *
      * @param {Zinc.SearchSearchGetRequest} request
      * @param {SearchClient.RequestOptions} requestOptions - Request-specific configuration.
