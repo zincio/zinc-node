@@ -10,7 +10,7 @@
 export interface AgentProductSearchRequest {
     /** Search term */
     query: string;
-    /** Zinc retailer slug: amazon, amazon-uk, amazon-ca, amazon-de, amazon-mx, amazon-fr, walmart, bestbuy, etsy, or a catalogued Shopify store's slug (e.g. retailer=yetch; GET /retailers/check?url=... returns a store's slug). A store's domain is also accepted, as are the older amazon_uk-style codes. Stores not in Zinc's catalog are rejected with a 422. Responses carry the slug. */
+    /** Zinc retailer slug: amazon, amazon-uk, amazon-ca, amazon-de, amazon-mx, amazon-fr, amazon-au, walmart, bestbuy, etsy, or a catalogued Shopify store's slug (e.g. retailer=yetch; GET /retailers/check?url=... returns a store's slug). A store's domain is also accepted, as are the older amazon_uk-style codes. Stores not in Zinc's catalog are rejected with a 422. Responses carry the slug. */
     retailer: string;
     /** Page number for pagination */
     page?: number | null;

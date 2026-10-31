@@ -25,12 +25,8 @@ export class ProductsClient {
     /**
      * Search for products on a retailer.
      *
-     * **Best Buy returns a partial page.** Best Buy server-renders only about 4 of
-     * the ~24 products on a search page and loads the rest in the browser, so each
-     * page yields roughly 4 results rather than a full page. Ranking, pricing and
-     * availability are Best Buy's own; there are simply fewer items per page. Page
-     * through with `next_page` to collect more — `next_page` reflects whether Best
-     * Buy has further results, not how many came back in this response.
+     * **Best Buy product data is not available yet**: `retailer=bestbuy` is
+     * rejected with a 400, in test mode too.
      *
      * **Shopify stores are their own retailer**: pass the store's Zinc retailer
      * slug as `retailer` (e.g. `retailer=yetch`; its domain, `yetch.studio`, also
@@ -254,6 +250,8 @@ export class ProductsClient {
      *
      * Not available for Shopify stores: a storefront lists one seller (itself),
      * so per-variant price and availability live on the details endpoint instead.
+     * Not available for Best Buy, whose product data is not available yet: a
+     * 400, in test mode too.
      *
      * **Billing.** This is a metered data call: $0.01 is drawn from your wallet per successful request, before any order is placed. An empty wallet gets `402` instead. Sandbox (`zn_test_`) calls are free, return synthetic sample data (marked `X-Zinc-Test-Data: synthetic`) and never touch the live wallet, up to 10,000 per account per UTC day; past that they get `429` until midnight UTC.
      *
@@ -351,13 +349,8 @@ export class ProductsClient {
     /**
      * Get details for a product from a retailer.
      *
-     * **Best Buy is addressed by `bsin`**, not by the numeric SKU — the bsin is the
-     * trailing id in a Best Buy product URL (`/product/{slug}/{bsin}`). Search
-     * results return the SKU as `product_id` and also carry the bsin, so pass the
-     * bsin here. The response repeats the SKU as `sku` for cross-referencing.
-     *
-     * Unlike `/search`, a Best Buy detail response is complete: detail pages are
-     * fully server-rendered, so nothing is withheld for client-side loading.
+     * **Best Buy product data is not available yet**: `retailer=bestbuy` is
+     * rejected with a 400, in test mode too.
      *
      * **Shopify is addressed by (store, handle)**: pass the store's retailer slug
      * as `retailer` (e.g. `retailer=yetch`) and the product handle — the slug

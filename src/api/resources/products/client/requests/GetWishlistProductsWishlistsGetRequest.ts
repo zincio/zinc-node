@@ -7,7 +7,7 @@
  *     }
  */
 export interface GetWishlistProductsWishlistsGetRequest {
-    /** A public Amazon wishlist or gift list url, on amazon.com, amazon.co.uk or amazon.ca */
+    /** A public Amazon wishlist or gift list url, on amazon.com, amazon.co.uk, amazon.ca or amazon.com.au */
     url: string;
     /** Read at most this many pages of the list (default: all) */
     pages?: number | null;

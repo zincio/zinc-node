@@ -19,6 +19,7 @@ export const ErrorCode = {
     PaymentMethodRequired: "payment_method_required",
     PaymentRequired: "payment_required",
     InvalidPaymentMethod: "invalid_payment_method",
+    CardVerificationRequired: "card_verification_required",
     InvalidShippingAddress: "invalid_shipping_address",
     UrlUnreachable: "url_unreachable",
     NonUsRetailer: "non_us_retailer",
