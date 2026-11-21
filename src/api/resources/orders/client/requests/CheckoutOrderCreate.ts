@@ -12,6 +12,8 @@ import type * as Zinc from "../../../../index.js";
  *     }
  */
 export interface CheckoutOrderCreate {
+    /** Optional key (max 36 characters) that makes this request safe to retry after a timeout or dropped connection. Equivalent to the `idempotency_key` body field: send either one, or both with the same value. A header and body field that differ are rejected with 400 before anything is created or charged. Use a fresh unique value (e.g. a UUID) for each distinct order, and the same value when retrying that order. Keys never expire. Keys are scoped to your account. The first request with a key creates the order; a later request with the same key creates no second order and charges nothing, whatever its body says, and answers 409 `already_exists` with the original order's id in `error.details.order_id` — read it with GET /orders/{order_id}. `order_id` is absent when the two requests arrived concurrently, or when the key was already used for a different `payment.mode=card` basket; either way the key is spent, so use a new one for a new order. A `payment.mode=card` order whose payment page is still open answers with its original 402 instead. */
+    "Idempotency-Key"?: string | null;
     authorization?: string | null;
     products: Zinc.OrderProduct[];
     /** Where to ship. Required for wallet and Connect orders. */
@@ -36,6 +38,6 @@ export interface CheckoutOrderCreate {
     payment?: Zinc.OrderPayment | null;
     /** Opt in to emailing the end customer order updates (and unlock the public tracking page for this order). Adds a per-order surcharge. Omit for no customer notifications (default). */
     customer_notifications?: Zinc.CustomerNotifications | null;
-    /** Loosen the order's strict-by-default rules. Omit for today's behaviour: any rule that can't be met fails the order. Set a rule (`gift`, `items`, `quantity`) to `best_effort` to have the order placed anyway; anything left unset stays strict. Whatever was relaxed is reported back in `fulfillment.concessions` on the order. `max_price` is never relaxed. `excluded_merchants`, `included_merchants` and `first_party_only` tighten instead: which merchants this order may be bought from. */
+    /** Loosen the order's strict-by-default rules. Omit for today's behaviour: any rule that can't be met fails the order. Set a rule (`gift`, `items`, `quantity`) to `best_effort` to have the order placed anyway; anything left unset stays strict. Whatever was relaxed is reported back in `fulfillment.concessions` on the order. `max_price` is never relaxed. `excluded_merchants`, `included_merchants` and `first_party_only` tighten instead: which merchants this order may be bought from. `shipping` picks a preferred delivery speed. */
     fulfillment?: Zinc.FulfillmentPreferences | null;
 }

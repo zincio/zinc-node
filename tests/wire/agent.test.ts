@@ -164,8 +164,10 @@ describe("AgentClient", () => {
                 excluded_merchants: ["excluded_merchants"],
                 included_merchants: ["included_merchants"],
                 first_party_only: true,
+                shipping: "fast_free",
                 concessions: [{ concern: "gift", code: "code" }],
             },
+            status_checked_at: "2024-01-15T09:30:00Z",
             created_at: "2024-01-15T09:30:00Z",
             updated_at: "2024-01-15T09:30:00Z",
         };
@@ -220,6 +222,55 @@ describe("AgentClient", () => {
             .post("/agent/orders")
             .jsonBody(rawRequestBody)
             .respondWith()
+            .statusCode(400)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.agent.createMppOrder({
+                products: [
+                    {
+                        url: "url",
+                    },
+                    {
+                        url: "url",
+                    },
+                ],
+                shipping_address: {
+                    first_name: "first_name",
+                    last_name: "last_name",
+                    address_line1: "address_line1",
+                    city: "city",
+                    postal_code: "postal_code",
+                    phone_number: "phone_number",
+                },
+                max_price: 1,
+            });
+        }).rejects.toThrow(Zinc.BadRequestError);
+    });
+
+    test("createMppOrder (3)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+        const rawRequestBody = {
+            products: [{ url: "url" }, { url: "url" }],
+            shipping_address: {
+                first_name: "first_name",
+                last_name: "last_name",
+                address_line1: "address_line1",
+                city: "city",
+                postal_code: "postal_code",
+                phone_number: "phone_number",
+            },
+            max_price: 1,
+        };
+        const rawResponseBody = { key: "value" };
+
+        server
+            .mockEndpoint()
+            .post("/agent/orders")
+            .jsonBody(rawRequestBody)
+            .respondWith()
             .statusCode(402)
             .jsonBody(rawResponseBody)
             .build();
@@ -247,7 +298,7 @@ describe("AgentClient", () => {
         }).rejects.toThrow(Zinc.PaymentRequiredError);
     });
 
-    test("createMppOrder (3)", async () => {
+    test("createMppOrder (4)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
         const rawRequestBody = {
@@ -296,7 +347,7 @@ describe("AgentClient", () => {
         }).rejects.toThrow(Zinc.ConflictError);
     });
 
-    test("createMppOrder (4)", async () => {
+    test("createMppOrder (5)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
         const rawRequestBody = {
@@ -746,6 +797,7 @@ describe("AgentClient", () => {
             status: "completed",
             code: "code",
             message: "message",
+            replaced_by_product_id: "replaced_by_product_id",
             retailer: "amazon",
             platform: "platform",
             product_id: "B00KFP6NHO",
@@ -875,6 +927,7 @@ describe("AgentClient", () => {
             status: "completed",
             code: "code",
             message: "message",
+            replaced_by_product_id: "replaced_by_product_id",
             retailer: "bestbuy",
             platform: "platform",
             product_id: "JJGWKYZY27",
@@ -996,6 +1049,7 @@ describe("AgentClient", () => {
             status: "completed",
             code: "code",
             message: "message",
+            replaced_by_product_id: "replaced_by_product_id",
             retailer: "yetch",
             platform: "shopify",
             product_id: "studio-tote-bag",
@@ -1110,6 +1164,7 @@ describe("AgentClient", () => {
             status: "completed",
             code: "code",
             message: "message",
+            replaced_by_product_id: "replaced_by_product_id",
             retailer: "etsy",
             platform: "platform",
             product_id: "1234567890",
@@ -1214,6 +1269,7 @@ describe("AgentClient", () => {
             status: "processing",
             code: "code",
             message: "message",
+            replaced_by_product_id: "replaced_by_product_id",
             retailer: "retailer",
             platform: "platform",
             product_id: "product_id",
@@ -1315,6 +1371,7 @@ describe("AgentClient", () => {
             status: "failed",
             code: "product_not_found",
             message: "No product found for id B00KFP6NHO on amazon",
+            replaced_by_product_id: "replaced_by_product_id",
             retailer: "retailer",
             platform: "platform",
             product_id: "product_id",

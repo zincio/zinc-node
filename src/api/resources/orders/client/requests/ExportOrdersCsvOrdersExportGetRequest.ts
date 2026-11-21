@@ -9,8 +9,10 @@ export interface ExportOrdersCsvOrdersExportGetRequest {
     order_id?: string | null;
     /** Partial match on order ID OR tracking number */
     search?: string | null;
-    /** Filter by order status */
+    /** Filter by order status; comma-separate to match any of several. `delivered` matches placed orders whose items have all been delivered. */
     status_filter?: string | null;
+    /** Exclude `order_failed`, `cancelled`, and `cancelled_by_retailer` orders. ANDed with `status_filter`, so combining it with one of those statuses returns nothing. */
+    hide_failed_and_cancelled?: boolean;
     /** Filter by the retailer's own order number (exact match) */
     merchant_order_id?: string | null;
     /** Shipping recipient's name (case-insensitive partial match) */

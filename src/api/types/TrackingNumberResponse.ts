@@ -22,7 +22,7 @@ export interface TrackingNumberResponse {
     status?: (Zinc.TrackingStatus | null) | undefined;
     /** Carrier-reported delivery estimate for this shipment, as a destination-local calendar date. Refreshed on every carrier poll; null when the carrier hasn't reported one. */
     estimated_delivery_date?: (string | null) | undefined;
-    /** URL of the carrier's proof-of-delivery photo, when one was captured. Typically appears once the shipment is delivered; null when none is available. */
+    /** URL of the proof-of-delivery photo, when the retailer provided one. Only available on orders placed with a managed account; delivery photos can't be pulled from carriers (USPS, UPS, etc.) for privacy reasons, so the retailer must supply it. Typically appears once the shipment is delivered; null when none is available. */
     delivery_proof_url?: (string | null) | undefined;
     /** Carrier scan events, most recent first. Empty unless the checkpoint timeline was requested. */
     checkpoints?: Zinc.TrackingCheckpointResponse[] | undefined;

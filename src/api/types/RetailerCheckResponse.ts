@@ -11,7 +11,7 @@ export interface RetailerCheckResponse {
     domain?: (string | null) | undefined;
     /** Zinc will attempt an order here, given whatever the store requires. True for every support tier except `unsupported` — including `untested`, a store Zinc has never seen. It is a fact about the store, not about one request: where `checkout.guest_checkout` is false the store still needs a linked account, so pass `retailer_credentials_id` to POST /orders or it will refuse. Check both fields to predict a credential-less order. */
     orderable: boolean;
-    /** verified: curated, daily test order passing. active: real orders succeeded in the last 90 days. observed: Zinc has attempted orders here. untested: never seen, and Zinc will still try. unsupported: Zinc refuses; see `unsupported_reason`. */
+    /** verified: curated, daily test checkout passing. active: real orders succeeded in the last 90 days. observed: Zinc has attempted orders here. untested: never seen, and Zinc will still try. unsupported: Zinc refuses; see `unsupported_reason`. */
     support: string;
     /** Null when Zinc has no catalog row for the domain. */
     retailer?: (Zinc.RetailerCheckRetailer | null) | undefined;

@@ -5,11 +5,13 @@ import type * as Zinc from "../index.js";
 /**
  * Optional payment block. Absent or mode='wallet' draws the order from the
  * prepaid wallet. mode='connect' charges the end-customer's saved card through
- * Stripe Connect and keeps your margin (see ConnectService).
+ * Stripe Connect and keeps your margin (see ConnectService). mode='link' pays
+ * the retailer with a one-time card from your connected Link wallet, after you
+ * approve the spend in Link; the wallet is charged the API fee only.
  */
 export interface OrderPayment {
     mode?: OrderPayment.Mode | undefined;
-    /** Connect mode: the end-customer's vaulted payment-method id on the connected account. Required for connect mode. */
+    /** Connect mode: the end-customer's vaulted payment-method id on the connected account. Required for connect mode. Link mode: which card in your Link wallet pays (from GET /users/link-wallet/payment-methods); omitted, your default Link card. */
     payment_method?: (string | null) | undefined;
     /** Connect mode: the end-customer's Stripe Customer id (cus_…) on the connected account. Required to charge a *reusable* saved card off-session; omit only for a one-time, unattached payment method. */
     customer?: (string | null) | undefined;
@@ -22,6 +24,7 @@ export namespace OrderPayment {
         Wallet: "wallet",
         Card: "card",
         Connect: "connect",
+        Link: "link",
     } as const;
     export type Mode = (typeof Mode)[keyof typeof Mode];
 }

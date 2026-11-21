@@ -28,6 +28,7 @@ export const ErrorCode = {
     RetailerCountryNotSupported: "retailer_country_not_supported",
     GuestCheckoutNotSupported: "guest_checkout_not_supported",
     InvalidVariant: "invalid_variant",
+    UnsupportedProduct: "unsupported_product",
     OutOfStock: "out_of_stock",
     ShippingUnavailable: "shipping_unavailable",
     OrderNotCancellable: "order_not_cancellable",

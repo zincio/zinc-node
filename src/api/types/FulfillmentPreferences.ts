@@ -27,6 +27,11 @@ import type * as Zinc from "../index.js";
  * placement paths can honour them (BizAPI, and Sonic on Amazon and Walmart;
  * ignored elsewhere). None is
  * a ``FulfillmentConcern`` and none produces a concession.
+ *
+ * ``shipping`` is the other exception: a delivery-speed preference rather
+ * than a rule, so it neither loosens nor tightens. Not a ``FulfillmentConcern``
+ * either: nothing reports a concession when it isn't honoured. BizAPI can't
+ * tell whether Amazon did, and Sonic treats it as a preference the same way.
  */
 export interface FulfillmentPreferences {
     /** `best_effort`: if the retailer offers no free gift option, place a normal order instead of failing with `gift_option_unavailable`. Requires `is_gift: true`. Omit to keep the gift requirement strict. */
@@ -41,4 +46,6 @@ export interface FulfillmentPreferences {
     included_merchants?: (string[] | null) | undefined;
     /** `true`: only buy offers sold by the retailer itself (Amazon on Amazon, Walmart.com on Walmart), skipping every third-party seller (including ones fulfilled by the retailer) and Amazon's cross-border, used/returns, pharmacy and gift-card stores. If the retailer doesn't sell the item the item fails as unavailable. Takes the place of every merchant list: `included_merchants`, `excluded_merchants` and any blocklist on your account are not applied to this order. Applied to Amazon Business orders, Amazon orders placed with `retailer_credentials_id`, and Walmart orders; ignored elsewhere. */
     first_party_only?: (boolean | null) | undefined;
+    /** Preferred delivery speed. `fast_free`: the fastest free delivery option, never a slower free one (such as a no-rush option); on Amazon Business this is usually what standard delivery picks anyway. `fastest`: the fastest option even if it costs more (e.g. same-day for a fee); paid shipping counts toward `max_price`. When the fastest option would push the order over `max_price`, an Amazon Business order fails with `max_price_exceeded`; other orders take the fastest option that keeps the total within it. A preference, not a guarantee: when the preferred option isn't offered the order ships with the next best one instead of failing. Omit for the retailer's standard delivery. `handling_days_max` still applies. Applied to Amazon Business orders, Amazon orders placed with `retailer_credentials_id`, and orders on other retailers; ignored on other Amazon orders. */
+    shipping?: (Zinc.ShippingSpeed | null) | undefined;
 }

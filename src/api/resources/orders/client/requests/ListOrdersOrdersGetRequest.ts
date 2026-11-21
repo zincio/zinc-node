@@ -17,8 +17,10 @@ export interface ListOrdersOrdersGetRequest {
     merchant_order_id?: string | null;
     /** Filter by the shipping recipient's name, matched as a case-insensitive substring of `first_name last_name`. */
     shipping_name?: string | null;
-    /** Filter by order status */
+    /** Filter by order status; comma-separate to match any of several. `delivered` matches placed orders whose items have all been delivered. */
     status_filter?: string | null;
+    /** Exclude `order_failed`, `cancelled`, and `cancelled_by_retailer` orders. ANDed with `status_filter`, so combining it with one of those statuses returns nothing. */
+    hide_failed_and_cancelled?: boolean;
     /** Filter to orders having at least one tracking number with this status */
     tracking_status?: string | null;
     /** If true, only orders with at least one tracking number; if false, only orders with none */

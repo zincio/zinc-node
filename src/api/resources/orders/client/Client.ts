@@ -178,6 +178,10 @@ export class OrdersClient {
     /**
      * Create a bulk-upload batch and place its rows asynchronously.
      *
+     * The 201 returns the batch before its rows are placed; each row becomes an
+     * order that is placed asynchronously like any POST /orders order. Poll
+     * GET /orders/bulk/{batch_id} for per-row results and live order statuses.
+     *
      * @param {Zinc.CreateBulkUploadOrdersBulkPostRequest} request
      * @param {OrdersClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -426,6 +430,7 @@ export class OrdersClient {
             merchant_order_id: merchantOrderId,
             shipping_name: shippingName,
             status_filter: statusFilter,
+            hide_failed_and_cancelled: hideFailedAndCancelled,
             tracking_status: trackingStatus,
             has_tracking: hasTracking,
             return_status: returnStatus,
@@ -445,6 +450,7 @@ export class OrdersClient {
             merchant_order_id: merchantOrderId,
             shipping_name: shippingName,
             status_filter: statusFilter,
+            hide_failed_and_cancelled: hideFailedAndCancelled,
             tracking_status: trackingStatus,
             has_tracking: hasTracking,
             return_status: returnStatus,
@@ -505,9 +511,13 @@ export class OrdersClient {
     /**
      * Posts an order to a queue for processing
      *
+     * **Placement is asynchronous.** A 201 means the order was accepted and queued, not that the retailer order exists: the returned order is normally `pending`, with an empty `job_result` and `merchant_order_ids`. A worker then places it at the retailer, which usually takes a few minutes. Learn the outcome either by polling GET /orders/{order_id} (linked from this response) until `status` is no longer `pending` or `in_progress` — `order_placed`, `order_failed`, or `cancelled` — or by registering a URL with PUT /webhooks/endpoint and waiting for `order.placed` or `order.failed`. To retry safely after a timeout, send an `Idempotency-Key` and resend the same value.
+     *
      * @param {Zinc.CheckoutOrderCreate} request
      * @param {OrdersClient.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Zinc.BadRequestError}
+     * @throws {@link Zinc.ConflictError}
      * @throws {@link Zinc.UnprocessableEntityError}
      * @throws {@link errors.ZincError}
      * @throws {@link errors.ZincTimeoutError}
@@ -531,12 +541,15 @@ export class OrdersClient {
         request: Zinc.CheckoutOrderCreate,
         requestOptions?: OrdersClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.OrderResponse>> {
-        const { authorization, ..._body } = request;
+        const { "Idempotency-Key": idempotencyKeyHeader, authorization, ..._body } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
             this._options?.headers,
-            mergeOnlyDefinedHeaders({ authorization: authorization ?? undefined }),
+            mergeOnlyDefinedHeaders({
+                "Idempotency-Key": idempotencyKeyHeader ?? undefined,
+                authorization: authorization ?? undefined,
+            }),
             requestOptions?.headers,
         );
         const _response = await core.fetcher({
@@ -564,6 +577,10 @@ export class OrdersClient {
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 400:
+                    throw new Zinc.BadRequestError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new Zinc.ConflictError(_response.error.body as unknown, _response.rawResponse);
                 case 422:
                     throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -611,6 +628,7 @@ export class OrdersClient {
             order_id: orderId,
             search,
             status_filter: statusFilter,
+            hide_failed_and_cancelled: hideFailedAndCancelled,
             merchant_order_id: merchantOrderId,
             shipping_name: shippingName,
             tracking_status: trackingStatus,
@@ -627,6 +645,7 @@ export class OrdersClient {
             order_id: orderId,
             search,
             status_filter: statusFilter,
+            hide_failed_and_cancelled: hideFailedAndCancelled,
             merchant_order_id: merchantOrderId,
             shipping_name: shippingName,
             tracking_status: trackingStatus,

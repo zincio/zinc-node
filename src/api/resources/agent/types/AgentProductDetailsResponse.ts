@@ -10,6 +10,8 @@ export interface AgentProductDetailsResponse {
     code?: string | undefined;
     /** Only on `status: failed`. Human-readable explanation. */
     message?: string | undefined;
+    /** Only on `status: failed` with `code: invalid_product`, when the retailer has replaced the requested product with another listing (Walmart). The successor's `product_id`: retry the call with it. */
+    replaced_by_product_id?: string | undefined;
     /** Zinc retailer slug that served the payload, the value to pass back as `retailer`: `amazon`, `amazon-uk`, `walmart`, `bestbuy`, `etsy`, or a Shopify store's slug (e.g. `yetch`, with `platform: "shopify"` and the store's hostname in `domain`). */
     retailer?: string | undefined;
     /** Shopify only. The commerce platform the store runs on: `shopify`. */

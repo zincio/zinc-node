@@ -4,6 +4,7 @@ import type { BaseClientOptions, BaseRequestOptions } from "../../../../BaseClie
 import { type NormalizedClientOptionsWithAuth, normalizeClientOptionsWithAuth } from "../../../../BaseClient.js";
 import { mergeHeaders, mergeOnlyDefinedHeaders } from "../../../../core/headers.js";
 import * as core from "../../../../core/index.js";
+import { toJson } from "../../../../core/json.js";
 import * as environments from "../../../../environments.js";
 import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
 import * as errors from "../../../../errors/index.js";
@@ -34,6 +35,13 @@ export class WalletClient {
      *
      * Under a `zn_test_` key (or `X-Test-Mode`) this reads the sandbox wallet,
      * which sandbox orders never draw down. Funds are added from the dashboard.
+     *
+     * On a team with an organization wallet, `organization_wallet` carries its
+     * balance (for every member but its holder, whose own wallet it is:
+     * `is_organization_wallet`).
+     *
+     * `pending_deposits` is money on its way in but not yet spendable, such as a
+     * bank (ACH) debit, which takes 3-5 business days to settle.
      *
      * @param {Zinc.GetWalletWalletMeGetRequest} request
      * @param {WalletClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -98,5 +106,175 @@ export class WalletClient {
         }
 
         return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/wallet/me");
+    }
+
+    /**
+     * List your wallet transactions, newest first.
+     *
+     * Paginate with `limit` and `offset`. Filter by `type`, repeating it to ask
+     * for several (`?type=refund&type=return_credit`); `?type=deposit` lists your
+     * deposits, pending ones included.
+     *
+     * A deposit's `status` is `pending` until the money arrives, then `completed`
+     * (counted in `balance`), `failed` (`failure_reason` says why) or
+     * `cancelled`. A bank (ACH) debit (`payment_type: us_bank_account`) takes 3-5
+     * business days; while pending it carries `expected_available_at`. `fee` is
+     * the processing fee charged on top of a deposit.
+     *
+     * On a team, a billing viewer sees every member's history, each row labelled
+     * `created_by`; deposits a teammate paid into another wallet carry `paid_by`.
+     *
+     * @param {Zinc.GetTransactionsWalletTransactionsGetRequest} request
+     * @param {WalletClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Zinc.UnprocessableEntityError}
+     * @throws {@link errors.ZincError}
+     * @throws {@link errors.ZincTimeoutError}
+     *
+     * @example
+     *     await client.wallet.getTransactions()
+     */
+    public getTransactions(
+        request: Zinc.GetTransactionsWalletTransactionsGetRequest = {},
+        requestOptions?: WalletClient.RequestOptions,
+    ): core.HttpResponsePromise<Zinc.TransactionListResponse> {
+        return core.HttpResponsePromise.fromPromise(this.__getTransactions(request, requestOptions));
+    }
+
+    private async __getTransactions(
+        request: Zinc.GetTransactionsWalletTransactionsGetRequest = {},
+        requestOptions?: WalletClient.RequestOptions,
+    ): Promise<core.WithRawResponse<Zinc.TransactionListResponse>> {
+        const { limit, offset, type: type_, authorization } = request;
+        const _queryParams: Record<string, unknown> = {
+            limit,
+            offset,
+            type: type_ !== undefined ? toJson(type_) : undefined,
+        };
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            mergeOnlyDefinedHeaders({ authorization: authorization ?? undefined }),
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.ZincEnvironment.Production,
+                "wallet/transactions",
+            ),
+            method: "GET",
+            headers: _headers,
+            queryString: core.url
+                .queryBuilder()
+                .addMany(_queryParams)
+                .mergeAdditional(requestOptions?.queryParams)
+                .build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Zinc.TransactionListResponse, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 422:
+                    throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.ZincError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/wallet/transactions");
+    }
+
+    /**
+     * Get one wallet transaction, e.g. to check on a pending deposit.
+     *
+     * Same fields as each row of `GET /wallet/transactions`: a pending bank
+     * (ACH) debit carries `expected_available_at`, a completed one
+     * `completed_at`, a failed one `failure_reason`. Returns 404 for a
+     * transaction that isn't yours.
+     *
+     * @param {Zinc.GetTransactionWalletTransactionsTransactionIdGetRequest} request
+     * @param {WalletClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link Zinc.UnprocessableEntityError}
+     * @throws {@link errors.ZincError}
+     * @throws {@link errors.ZincTimeoutError}
+     *
+     * @example
+     *     await client.wallet.getTransaction({
+     *         transaction_id: "transaction_id"
+     *     })
+     */
+    public getTransaction(
+        request: Zinc.GetTransactionWalletTransactionsTransactionIdGetRequest,
+        requestOptions?: WalletClient.RequestOptions,
+    ): core.HttpResponsePromise<Zinc.TransactionResponse> {
+        return core.HttpResponsePromise.fromPromise(this.__getTransaction(request, requestOptions));
+    }
+
+    private async __getTransaction(
+        request: Zinc.GetTransactionWalletTransactionsTransactionIdGetRequest,
+        requestOptions?: WalletClient.RequestOptions,
+    ): Promise<core.WithRawResponse<Zinc.TransactionResponse>> {
+        const { transaction_id: transactionId, authorization } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            mergeOnlyDefinedHeaders({ authorization: authorization ?? undefined }),
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.ZincEnvironment.Production,
+                `wallet/transactions/${core.url.encodePathParam(transactionId)}`,
+            ),
+            method: "GET",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as Zinc.TransactionResponse, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 422:
+                    throw new Zinc.UnprocessableEntityError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.ZincError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(
+            _response.error,
+            _response.rawResponse,
+            "GET",
+            "/wallet/transactions/{transaction_id}",
+        );
     }
 }

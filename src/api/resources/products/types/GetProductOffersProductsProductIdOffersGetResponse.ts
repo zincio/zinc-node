@@ -56,7 +56,7 @@ export namespace GetProductOffersProductsProductIdOffersGetResponse {
             minimum_quantity?: (number | null) | undefined;
             /** Time before the seller ships. */
             handling_days?: Item.HandlingDays | undefined;
-            /** Shipping methods offered by this seller. */
+            /** Shipping methods offered by this seller. Amazon: empty when the item is digital (an ebook or a code sent by email), or when the seller won't ship it to the location Zinc looks it up from (e.g. a state shipping restriction); a restricted item may still ship to other addresses. */
             shipping_options?: Item.ShippingOptions.Item[] | undefined;
         }
 

@@ -26,4 +26,12 @@ export interface WalletResponse {
     order_fee_cents?: number | undefined;
     /** True for bulk-deal customers, who are invoiced monthly. Their orders skip the wallet balance check entirely, so a low balance does not block them. */
     billed_by_invoice?: boolean | undefined;
+    /** Promotional fee-free orders and data calls granted to this account, or null when there are none. Not part of `balance`. While free orders remain, `order_fee_cents` is 0. */
+    fee_allowance?: (Zinc.WalletFeeAllowance | null) | undefined;
+    /** Your organization's wallet, when it has one and it isn't this wallet: manual top-ups can be sent there. Null otherwise, in test mode, and for OAuth tokens. Orders still draw this wallet, not that one. */
+    organization_wallet?: (Zinc.OrganizationWalletSummary | null) | undefined;
+    /** True when this wallet is your organization's wallet. */
+    is_organization_wallet?: boolean | undefined;
+    /** Deposits started but not yet settled, in cents: bank (ACH) debits, which take 3-5 business days, and bank transfers. Card payments settle at once and are never counted. Not part of `balance` and not spendable until they complete. See `GET /wallet/transactions?type=deposit` for each one's `expected_available_at`. */
+    pending_deposits?: number | undefined;
 }

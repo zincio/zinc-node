@@ -38,6 +38,8 @@ export interface OrderResponse {
     customer_notifications?: (Zinc.CustomerNotificationStatus | null) | undefined;
     /** `gift`/`items`/`quantity`: the mode this order asked for on each rule (all null = strict). `concessions`: every rule that actually was relaxed, with the worker's code and the item it concerned. Empty concessions means the order was fulfilled exactly as requested. */
     fulfillment?: Zinc.OrderFulfillment | undefined;
+    /** When Zinc last got an answer about this order's status or tracking from the retailer or a carrier (UTC). An answer of 'no tracking yet' counts; failed attempts do not. Null until the first successful check. */
+    status_checked_at?: (string | null) | undefined;
     created_at: string;
     updated_at: string;
 }

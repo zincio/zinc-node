@@ -144,6 +144,10 @@ await client.orders.listBulkUploads();
 <dd>
 
 Create a bulk-upload batch and place its rows asynchronously.
+
+The 201 returns the batch before its rows are placed; each row becomes an
+order that is placed asynchronously like any POST /orders order. Poll
+GET /orders/bulk/{batch_id} for per-row results and live order statuses.
 </dd>
 </dl>
 </dd>
@@ -402,6 +406,8 @@ await client.orders.listOrders();
 <dd>
 
 Posts an order to a queue for processing
+
+**Placement is asynchronous.** A 201 means the order was accepted and queued, not that the retailer order exists: the returned order is normally `pending`, with an empty `job_result` and `merchant_order_ids`. A worker then places it at the retailer, which usually takes a few minutes. Learn the outcome either by polling GET /orders/{order_id} (linked from this response) until `status` is no longer `pending` or `in_progress` — `order_placed`, `order_failed`, or `cancelled` — or by registering a URL with PUT /webhooks/endpoint and waiting for `order.placed` or `order.failed`. To retry safely after a timeout, send an `Idempotency-Key` and resend the same value.
 </dd>
 </dl>
 </dd>
@@ -1499,6 +1505,8 @@ whose retry body no longer matches the challenge).
 ``X-Test-Mode: true`` runs the same flow on testnets: every rail is swapped
 for a testnet-only twin, and the order is created in the sandbox, where it
 is simulated like any ``zn_test_`` order. Testnet payments are not refunded.
+
+**Placement is asynchronous.** A 201 means the order was accepted and queued, not that the retailer order exists: the returned order is normally `pending`, with an empty `job_result` and `merchant_order_ids`. A worker then places it at the retailer, which usually takes a few minutes. Learn the outcome either by polling GET /orders/{order_id} (linked from this response) until `status` is no longer `pending` or `in_progress` — `order_placed`, `order_failed`, or `cancelled` — or by registering a URL with PUT /webhooks/endpoint and waiting for `order.placed` or `order.failed`. To retry safely after a timeout, send an `Idempotency-Key` and resend the same value.
 </dd>
 </dl>
 </dd>
@@ -2468,7 +2476,7 @@ caller holding an arbitrary URL has no way to find out from the list alone.
 
 | tier | meaning |
 |---|---|
-| `verified` | curated, and its daily test order is passing |
+| `verified` | curated, and its daily test checkout is passing |
 | `active` | real orders succeeded here in the last 90 days |
 | `observed` | Zinc has attempted orders here |
 | `untested` | never seen — and Zinc will still attempt it |
@@ -2615,6 +2623,13 @@ placing one instead of discovering a shortfall as a 402. Bulk-deal customers
 
 Under a `zn_test_` key (or `X-Test-Mode`) this reads the sandbox wallet,
 which sandbox orders never draw down. Funds are added from the dashboard.
+
+On a team with an organization wallet, `organization_wallet` carries its
+balance (for every member but its holder, whose own wallet it is:
+`is_organization_wallet`).
+
+`pending_deposits` is money on its way in but not yet spendable, such as a
+bank (ACH) debit, which takes 3-5 business days to settle.
 </dd>
 </dl>
 </dd>
@@ -2646,6 +2661,152 @@ await client.wallet.getWallet();
 <dd>
 
 **request:** `Zinc.GetWalletWalletMeGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `WalletClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.wallet.<a href="/src/api/resources/wallet/client/Client.ts">getTransactions</a>({ ...params }) -> Zinc.TransactionListResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+List your wallet transactions, newest first.
+
+Paginate with `limit` and `offset`. Filter by `type`, repeating it to ask
+for several (`?type=refund&type=return_credit`); `?type=deposit` lists your
+deposits, pending ones included.
+
+A deposit's `status` is `pending` until the money arrives, then `completed`
+(counted in `balance`), `failed` (`failure_reason` says why) or
+`cancelled`. A bank (ACH) debit (`payment_type: us_bank_account`) takes 3-5
+business days; while pending it carries `expected_available_at`. `fee` is
+the processing fee charged on top of a deposit.
+
+On a team, a billing viewer sees every member's history, each row labelled
+`created_by`; deposits a teammate paid into another wallet carry `paid_by`.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.wallet.getTransactions();
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.GetTransactionsWalletTransactionsGetRequest` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**requestOptions:** `WalletClient.RequestOptions` 
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.wallet.<a href="/src/api/resources/wallet/client/Client.ts">getTransaction</a>({ ...params }) -> Zinc.TransactionResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Get one wallet transaction, e.g. to check on a pending deposit.
+
+Same fields as each row of `GET /wallet/transactions`: a pending bank
+(ACH) debit carries `expected_available_at`, a completed one
+`completed_at`, a failed one `failure_reason`. Returns 404 for a
+transaction that isn't yours.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```typescript
+await client.wallet.getTransaction({
+    transaction_id: "transaction_id"
+});
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request:** `Zinc.GetTransactionWalletTransactionsTransactionIdGetRequest` 
     
 </dd>
 </dl>

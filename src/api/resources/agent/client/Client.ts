@@ -46,9 +46,12 @@ export class AgentClient {
      * for a testnet-only twin, and the order is created in the sandbox, where it
      * is simulated like any ``zn_test_`` order. Testnet payments are not refunded.
      *
+     * **Placement is asynchronous.** A 201 means the order was accepted and queued, not that the retailer order exists: the returned order is normally `pending`, with an empty `job_result` and `merchant_order_ids`. A worker then places it at the retailer, which usually takes a few minutes. Learn the outcome either by polling GET /orders/{order_id} (linked from this response) until `status` is no longer `pending` or `in_progress` — `order_placed`, `order_failed`, or `cancelled` — or by registering a URL with PUT /webhooks/endpoint and waiting for `order.placed` or `order.failed`. To retry safely after a timeout, send an `Idempotency-Key` and resend the same value.
+     *
      * @param {Zinc.OrderCreate} request
      * @param {AgentClient.RequestOptions} requestOptions - Request-specific configuration.
      *
+     * @throws {@link Zinc.BadRequestError}
      * @throws {@link Zinc.PaymentRequiredError}
      * @throws {@link Zinc.ConflictError}
      * @throws {@link Zinc.UnprocessableEntityError}
@@ -82,7 +85,13 @@ export class AgentClient {
         request: Zinc.OrderCreate,
         requestOptions?: AgentClient.RequestOptions,
     ): Promise<core.WithRawResponse<Zinc.OrderResponse>> {
-        const { method, authorization, "x-test-mode": testMode, ..._body } = request;
+        const {
+            method,
+            authorization,
+            "x-test-mode": testMode,
+            "Idempotency-Key": idempotencyKeyHeader,
+            ..._body
+        } = request;
         const _queryParams: Record<string, unknown> = {
             method,
         };
@@ -91,6 +100,7 @@ export class AgentClient {
             mergeOnlyDefinedHeaders({
                 authorization: authorization ?? undefined,
                 "x-test-mode": testMode ?? undefined,
+                "Idempotency-Key": idempotencyKeyHeader ?? undefined,
             }),
             requestOptions?.headers,
         );
@@ -123,6 +133,8 @@ export class AgentClient {
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
+                case 400:
+                    throw new Zinc.BadRequestError(_response.error.body as unknown, _response.rawResponse);
                 case 402:
                     throw new Zinc.PaymentRequiredError(_response.error.body as unknown, _response.rawResponse);
                 case 409:

@@ -313,6 +313,7 @@ describe("OrdersClient", () => {
                     connect: { state: "state" },
                     payment: { state: "state", authorized_cents: 1, fee_cents: 1 },
                     customer_notifications: { email: "email" },
+                    status_checked_at: "2024-01-15T09:30:00Z",
                     created_at: "2024-01-15T09:30:00Z",
                     updated_at: "2024-01-15T09:30:00Z",
                 },
@@ -489,8 +490,10 @@ describe("OrdersClient", () => {
                 excluded_merchants: ["excluded_merchants"],
                 included_merchants: ["included_merchants"],
                 first_party_only: true,
+                shipping: "fast_free",
                 concessions: [{ concern: "gift", code: "code" }],
             },
+            status_checked_at: "2024-01-15T09:30:00Z",
             created_at: "2024-01-15T09:30:00Z",
             updated_at: "2024-01-15T09:30:00Z",
         };
@@ -516,6 +519,66 @@ describe("OrdersClient", () => {
     });
 
     test("createOrder (2)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+        const rawRequestBody = { products: [{ url: "url" }, { url: "url" }], max_price: 1 };
+        const rawResponseBody = { key: "value" };
+
+        server
+            .mockEndpoint()
+            .post("/orders")
+            .jsonBody(rawRequestBody)
+            .respondWith()
+            .statusCode(400)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.orders.createOrder({
+                products: [
+                    {
+                        url: "url",
+                    },
+                    {
+                        url: "url",
+                    },
+                ],
+                max_price: 1,
+            });
+        }).rejects.toThrow(Zinc.BadRequestError);
+    });
+
+    test("createOrder (3)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+        const rawRequestBody = { products: [{ url: "url" }, { url: "url" }], max_price: 1 };
+        const rawResponseBody = { key: "value" };
+
+        server
+            .mockEndpoint()
+            .post("/orders")
+            .jsonBody(rawRequestBody)
+            .respondWith()
+            .statusCode(409)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.orders.createOrder({
+                products: [
+                    {
+                        url: "url",
+                    },
+                    {
+                        url: "url",
+                    },
+                ],
+                max_price: 1,
+            });
+        }).rejects.toThrow(Zinc.ConflictError);
+    });
+
+    test("createOrder (4)", async () => {
         const server = mockServerPool.createServer();
         const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
         const rawRequestBody = { products: [{ url: "url" }, { url: "url" }], max_price: 1 };
@@ -711,8 +774,10 @@ describe("OrdersClient", () => {
                 excluded_merchants: ["excluded_merchants"],
                 included_merchants: ["included_merchants"],
                 first_party_only: true,
+                shipping: "fast_free",
                 concessions: [{ concern: "gift", code: "code" }],
             },
+            status_checked_at: "2024-01-15T09:30:00Z",
             created_at: "2024-01-15T09:30:00Z",
             updated_at: "2024-01-15T09:30:00Z",
         };

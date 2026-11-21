@@ -19,6 +19,10 @@ describe("WalletClient", () => {
             spendable_balance: 1,
             order_fee_cents: 1,
             billed_by_invoice: true,
+            fee_allowance: { orders_granted: 1, orders_remaining: 1, data_calls_granted: 1, data_calls_remaining: 1 },
+            organization_wallet: { balance: 1, owner_email: "owner_email" },
+            is_organization_wallet: true,
+            pending_deposits: 1,
         };
 
         server.mockEndpoint().get("/wallet/me").respondWith().statusCode(200).jsonBody(rawResponseBody).build();
@@ -37,6 +41,125 @@ describe("WalletClient", () => {
 
         await expect(async () => {
             return await client.wallet.getWallet();
+        }).rejects.toThrow(Zinc.UnprocessableEntityError);
+    });
+
+    test("getTransactions (1)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = {
+            transactions: [
+                {
+                    id: "id",
+                    wallet_id: "wallet_id",
+                    amount: 1,
+                    type: "type",
+                    status: "pending",
+                    stripe_payment_intent_id: "stripe_payment_intent_id",
+                    description: "description",
+                    meta: { key: "value" },
+                    created_at: "2024-01-15T09:30:00Z",
+                    updated_at: "2024-01-15T09:30:00Z",
+                    created_by: "created_by",
+                    paid_by: "paid_by",
+                    payment_type: "payment_type",
+                    fee: 1,
+                    expected_available_at: "2023-01-15",
+                    completed_at: "2024-01-15T09:30:00Z",
+                    failure_reason: "failure_reason",
+                },
+            ],
+            total: 1,
+        };
+
+        server
+            .mockEndpoint()
+            .get("/wallet/transactions")
+            .respondWith()
+            .statusCode(200)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        const response = await client.wallet.getTransactions();
+        expect(response).toEqual(rawResponseBody);
+    });
+
+    test("getTransactions (2)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = { key: "value" };
+
+        server
+            .mockEndpoint()
+            .get("/wallet/transactions")
+            .respondWith()
+            .statusCode(422)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.wallet.getTransactions();
+        }).rejects.toThrow(Zinc.UnprocessableEntityError);
+    });
+
+    test("getTransaction (1)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = {
+            id: "id",
+            wallet_id: "wallet_id",
+            amount: 1,
+            type: "type",
+            status: "pending",
+            stripe_payment_intent_id: "stripe_payment_intent_id",
+            description: "description",
+            meta: { key: "value" },
+            created_at: "2024-01-15T09:30:00Z",
+            updated_at: "2024-01-15T09:30:00Z",
+            created_by: "created_by",
+            paid_by: "paid_by",
+            payment_type: "payment_type",
+            fee: 1,
+            expected_available_at: "2023-01-15",
+            completed_at: "2024-01-15T09:30:00Z",
+            failure_reason: "failure_reason",
+        };
+
+        server
+            .mockEndpoint()
+            .get("/wallet/transactions/transaction_id")
+            .respondWith()
+            .statusCode(200)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        const response = await client.wallet.getTransaction({
+            transaction_id: "transaction_id",
+        });
+        expect(response).toEqual(rawResponseBody);
+    });
+
+    test("getTransaction (2)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ZincClient({ maxRetries: 0, apiKey: "test", environment: server.baseUrl });
+
+        const rawResponseBody = { key: "value" };
+
+        server
+            .mockEndpoint()
+            .get("/wallet/transactions/transaction_id")
+            .respondWith()
+            .statusCode(422)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.wallet.getTransaction({
+                transaction_id: "transaction_id",
+            });
         }).rejects.toThrow(Zinc.UnprocessableEntityError);
     });
 });
